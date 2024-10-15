@@ -8,6 +8,5 @@ import retrofit2.http.POST
 
 interface OpenAiApiService {
 
-    @POST("v1/chat/completions")
-    fun getChatCompletion(@Body request: OpenAiRequest): Call<OpenAiResponse>
+
 }
