@@ -1,4 +1,4 @@
-/*PokerAdvisorScreen*/
+/*PlayerInfoDialog*/
 package com.example.pokeradvisorapp.ui.components
 
 import androidx.compose.foundation.clickable
@@ -26,20 +26,20 @@ import androidx.compose.ui.unit.dp
 
 
 @Composable
-fun PlayerInfoDialog(playerInfo: PlayerInfo, onDismiss: (PlayerInfo?) -> Unit) {
+fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int ,onDismiss: (PlayerInfo?) -> Unit) {
     var stack by remember { mutableStateOf(playerInfo.stack) }
-    var lastAction by remember { mutableStateOf("Fold") } // Fold par défaut
+    var lastAction by remember { mutableStateOf(playerInfo.lastAction) } // Fold par défaut
     var actualMood by remember { mutableStateOf(playerInfo.actualMood) }
     var bouton by remember { mutableStateOf(playerInfo.bouton) }
 
-    val actions = listOf("Check", "Call", "Raise", "All in")
+    val actions = listOf("Check", "Call", "Raise", "All in","Fold")
     var expanded by remember { mutableStateOf(false) }
-    var raiseAmount by remember { mutableStateOf("") }
+    var raiseAmount by remember { mutableStateOf(playerInfo.raiseAmount) }
 
     AlertDialog(
         onDismissRequest = { onDismiss(null) },
         confirmButton = {
-            Button(onClick = { onDismiss(PlayerInfo(stack, lastAction, actualMood, bouton)) }) {
+            Button(onClick = { onDismiss(PlayerInfo(stack, lastAction, actualMood, bouton , raiseAmount)) }) {
                 Text("Confirmer")
             }
         },
@@ -48,7 +48,7 @@ fun PlayerInfoDialog(playerInfo: PlayerInfo, onDismiss: (PlayerInfo?) -> Unit) {
                 Text("Annuler")
             }
         },
-        title = { Text(text = "Informations sur le joueur") },
+        title = { Text(text = "Player ${playerIndex + 1}") }, // Modifier le titre
         text = {
             Column {
                 TextField(
@@ -114,7 +114,8 @@ data class PlayerInfo(
     var stack: String = "",
     var lastAction: String = "",
     var actualMood: String = "",
-    var bouton: Boolean = false
+    var bouton: Boolean = false,
+    var raiseAmount: String = ""
 )
 
 data class TableInfo(

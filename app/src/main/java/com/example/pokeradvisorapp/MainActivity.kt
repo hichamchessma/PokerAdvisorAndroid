@@ -1,3 +1,4 @@
+/*MainActivity*/
 package com.example.pokeradvisorapp
 
 import android.os.Bundle

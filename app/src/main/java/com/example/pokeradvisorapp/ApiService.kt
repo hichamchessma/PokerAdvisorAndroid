@@ -1,3 +1,4 @@
+/*ApiService*/
 package com.example.pokeradvisorapp
 
 import retrofit2.Retrofit

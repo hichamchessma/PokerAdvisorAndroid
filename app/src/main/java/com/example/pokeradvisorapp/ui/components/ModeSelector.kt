@@ -1,4 +1,4 @@
-/*PokerAdvisorScreen*/
+/*ModeSelector*/
 package com.example.pokeradvisorapp.ui.components
 
 import androidx.compose.foundation.clickable

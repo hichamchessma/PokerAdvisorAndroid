@@ -1,156 +1,225 @@
-/*PokerAdvisorScreen*/
+/*CardSelector*/
 package com.example.pokeradvisorapp.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 
 @Composable
 fun CardSelector(
-    card1Suit: String,
-    card1Value: String,
-    card2Suit: String,
-    card2Value: String,
-    suits: List<String>,
-    values: List<String>,
-    expandedCard1Suit: Boolean,
-    expandedCard1Value: Boolean,
-    expandedCard2Suit: Boolean,
-    expandedCard2Value: Boolean,
-    onCard1SuitSelected: (String) -> Unit,
-    onCard1ValueSelected: (String) -> Unit,
-    onCard2SuitSelected: (String) -> Unit,
-    onCard2ValueSelected: (String) -> Unit,
-    onExpandedCard1SuitChanged: (Boolean) -> Unit,
-    onExpandedCard1ValueChanged: (Boolean) -> Unit,
-    onExpandedCard2SuitChanged: (Boolean) -> Unit,
-    onExpandedCard2ValueChanged: (Boolean) -> Unit
-) {
-    // Carte 1
+    card1: String,
+    card2: String,
+    flop1: String,
+    flop2: String,
+    flop3: String,
+    turn: String,
+    river: String,
+    cards: List<String>,
+    expandedCard1: Boolean,
+    expandedCard2: Boolean,
+    expandedFlop1: Boolean,
+    expandedFlop2: Boolean,
+    expandedFlop3: Boolean,
+    expandedTurn: Boolean,
+    expandedRiver: Boolean,
+    onCard1Selected: (String) -> Unit,
+    onCard2Selected: (String) -> Unit,
+    onFlop1Selected: (String) -> Unit,
+    onFlop2Selected: (String) -> Unit,
+    onFlop3Selected: (String) -> Unit,
+    onTurnSelected: (String) -> Unit,
+    onRiverSelected: (String) -> Unit,
+    onExpandedCard1Changed: (Boolean) -> Unit,
+    onExpandedCard2Changed: (Boolean) -> Unit,
+    onExpandedFlop1Changed: (Boolean) -> Unit,
+    onExpandedFlop2Changed: (Boolean) -> Unit,
+    onExpandedFlop3Changed: (Boolean) -> Unit,
+    onExpandedTurnChanged: (Boolean) -> Unit,
+    onExpandedRiverChanged: (Boolean) -> Unit
+)  {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceAround,
+        modifier = Modifier
+            .width(150.dp)
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp), // Réduire l'espacement entre les cartes
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Valeur 1
+        // Carte 1
         Text(
-            text = if (card1Value.isEmpty()) "Valeur 1" else card1Value,
+            text = if (card1.isEmpty()) "Carte 1" else "Carte 1 : $card1",
             modifier = Modifier
-                .clickable { onExpandedCard1ValueChanged(true) }
-                .padding(2.dp)
-                .weight(0.8f),
-            fontSize = 12.sp,
-            textAlign = TextAlign.Center
+                .weight(0.45f)
+                .clickable { onExpandedCard1Changed(true) }
+                .padding(4.dp)
         )
         DropdownMenu(
-            expanded = expandedCard1Value,
-            onDismissRequest = { onExpandedCard1ValueChanged(false) }
+            expanded = expandedCard1,
+            onDismissRequest = { onExpandedCard1Changed(false) }
         ) {
-            values.forEach { value ->
+            cards.forEach { card ->
                 DropdownMenuItem(
-                    text = { Text(text = value) },
+                    text = { Text(text = card) },
                     onClick = {
-                        onCard1ValueSelected(value)
-                        onExpandedCard1ValueChanged(false)
+                        onCard1Selected(card)
+                        onExpandedCard1Changed(false)
                     }
                 )
             }
         }
 
-        // Couleur 1
+
+
+        // Carte 2
         Text(
-            text = if (card1Suit.isEmpty()) "Couleur 1" else card1Suit,
+            text = if (card2.isEmpty()) "Carte 2" else "Carte 2 : $card2",
             modifier = Modifier
-                .clickable { onExpandedCard1SuitChanged(true) }
-                .padding(2.dp)
-                .weight(0.8f),
-            fontSize = 12.sp
+                .weight(0.45f)
+                .clickable { onExpandedCard2Changed(true) }
+                .padding(4.dp)
         )
         DropdownMenu(
-            expanded = expandedCard1Suit,
-            onDismissRequest = { onExpandedCard1SuitChanged(false) }
+            expanded = expandedCard2,
+            onDismissRequest = { onExpandedCard2Changed(false) }
         ) {
-            suits.forEach { suit ->
+            cards.forEach { card ->
                 DropdownMenuItem(
-                    text = { Text(text = suit) },
+                    text = { Text(text = card) },
                     onClick = {
-                        onCard1SuitSelected(suit)
-                        onExpandedCard1SuitChanged(false)
+                        onCard2Selected(card)
+                        onExpandedCard2Changed(false)
+                    }
+                )
+            }
+        }
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = if (flop1.isEmpty()) "Flop1" else "Flop1 : $flop1",
+            modifier = Modifier
+                .width(70.dp)
+                .clickable { onExpandedFlop1Changed(true) }
+                .padding(4.dp)
+        )
+        DropdownMenu(
+            expanded = expandedFlop1,
+            onDismissRequest = { onExpandedFlop1Changed(false) }
+        ) {
+            cards.forEach { card ->
+                DropdownMenuItem(
+                    text = { Text(text = card) },
+                    onClick = {
+                        onFlop1Selected(card)
+                        onExpandedFlop1Changed(false)
+                    }
+                )
+            }
+        }
+
+        Text(
+            text = if (flop2.isEmpty()) "Flop2" else "Flop2 : $flop2",
+            modifier = Modifier
+                .width(70.dp)
+                .clickable { onExpandedFlop2Changed(true) }
+                .padding(4.dp)
+        )
+        DropdownMenu(
+            expanded = expandedFlop2,
+            onDismissRequest = { onExpandedFlop2Changed(false) }
+        ) {
+            cards.forEach { card ->
+                DropdownMenuItem(
+                    text = { Text(text = card) },
+                    onClick = {
+                        onFlop2Selected(card)
+                        onExpandedFlop2Changed(false)
+                    }
+                )
+            }
+        }
+
+        Text(
+            text = if (flop3.isEmpty()) "Flop3" else "Flop3 : $flop3",
+            modifier = Modifier
+                .width(70.dp)
+                .clickable { onExpandedFlop3Changed(true) }
+                .padding(4.dp)
+        )
+        DropdownMenu(
+            expanded = expandedFlop3,
+            onDismissRequest = { onExpandedFlop3Changed(false) }
+        ) {
+            cards.forEach { card ->
+                DropdownMenuItem(
+                    text = { Text(text = card) },
+                    onClick = {
+                        onFlop3Selected(card)
+                        onExpandedFlop3Changed(false)
+                    }
+                )
+            }
+        }
+
+        Text(
+            text = if (turn.isEmpty()) "Turn" else "Turn : $turn",
+            modifier = Modifier
+                .width(70.dp)
+                .clickable { onExpandedTurnChanged(true) }
+                .padding(4.dp)
+        )
+        DropdownMenu(
+            expanded = expandedTurn,
+            onDismissRequest = { onExpandedTurnChanged(false) }
+        ) {
+            cards.forEach { card ->
+                DropdownMenuItem(
+                    text = { Text(text = card) },
+                    onClick = {
+                        onTurnSelected(card)
+                        onExpandedTurnChanged(false)
+                    }
+                )
+            }
+        }
+
+        Text(
+            text = if (river.isEmpty()) "River" else "River : $river",
+            modifier = Modifier
+                .width(70.dp)
+                .clickable { onExpandedRiverChanged(true)  }
+                .padding(4.dp)
+        )
+        DropdownMenu(
+            expanded = expandedRiver,
+            onDismissRequest = { onExpandedRiverChanged(false) }
+        ) {
+            cards.forEach { card ->
+                DropdownMenuItem(
+                    text = { Text(text = card) },
+                    onClick = {
+                        onRiverSelected(card)
+                        onExpandedRiverChanged(false)
                     }
                 )
             }
         }
     }
 
-    Spacer(modifier = Modifier.height(8.dp))
-
-    // Carte 2
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Valeur 2
-        Text(
-            text = if (card2Value.isEmpty()) "Valeur 2" else card2Value,
-            modifier = Modifier
-                .clickable { onExpandedCard2ValueChanged(true) }
-                .padding(2.dp)
-                .weight(0.8f),
-            fontSize = 12.sp,
-            textAlign = TextAlign.Center
-        )
-        DropdownMenu(
-            expanded = expandedCard2Value,
-            onDismissRequest = { onExpandedCard2ValueChanged(false) }
-        ) {
-            values.forEach { value ->
-                DropdownMenuItem(
-                    text = { Text(text = value) },
-                    onClick = {
-                        onCard2ValueSelected(value)
-                        onExpandedCard2ValueChanged(false)
-                    }
-                )
-            }
-        }
-
-        // Couleur 2
-        Text(
-            text = if (card2Suit.isEmpty()) "Couleur 2" else card2Suit,
-            modifier = Modifier
-                .clickable { onExpandedCard2SuitChanged(true) }
-                .padding(2.dp)
-                .weight(0.8f),
-            fontSize = 12.sp
-        )
-        DropdownMenu(
-            expanded = expandedCard2Suit,
-            onDismissRequest = { onExpandedCard2SuitChanged(false) }
-        ) {
-            suits.forEach { suit ->
-                DropdownMenuItem(
-                    text = { Text(text = suit) },
-                    onClick = {
-                        onCard2SuitSelected(suit)
-                        onExpandedCard2SuitChanged(false)
-                    }
-                )
-            }
-        }
-    }
 }
+

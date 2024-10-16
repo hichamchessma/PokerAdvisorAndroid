@@ -1,3 +1,4 @@
+/*OpenAiResponse*/
 package com.example.pokeradvisorapp
 
 data class OpenAiResponse(

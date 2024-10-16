@@ -1,3 +1,4 @@
+/*PokerAdvisorScreen*/
 package com.example.pokeradvisorapp.ui.components
 
 import androidx.compose.foundation.clickable
@@ -38,19 +39,25 @@ fun PokerAdvisorScreen() {
     var expandedPosition by remember { mutableStateOf(false) }
     val positionOptions = (1..9).toList()
 
-    // Card Selection States
-    var card1Suit by remember { mutableStateOf("") }
-    var card1Value by remember { mutableStateOf("") }
-    var card2Suit by remember { mutableStateOf("") }
-    var card2Value by remember { mutableStateOf("") }
+// Card Selection States
+    var card1 by remember { mutableStateOf("") }
+    var card2 by remember { mutableStateOf("") }
 
-    val suits = listOf("♠", "♥", "♦", "♣")
-    val values = listOf("A", "K", "Q", "J", "10", "9", "8", "7", "6", "5", "4", "3", "2")
+    var flop1 by remember { mutableStateOf("") }
+    var flop2 by remember { mutableStateOf("") }
+    var flop3 by remember { mutableStateOf("") }
+    var turn by remember { mutableStateOf("") }
+    var river by remember { mutableStateOf("") }
 
-    var expandedCard1Suit by remember { mutableStateOf(false) }
-    var expandedCard1Value by remember { mutableStateOf(false) }
-    var expandedCard2Suit by remember { mutableStateOf(false) }
-    var expandedCard2Value by remember { mutableStateOf(false) }
+    var expandedCard1 by remember { mutableStateOf(false) }
+    var expandedCard2 by remember { mutableStateOf(false) }
+    var expandedFlop1 by remember { mutableStateOf(false) }
+    var expandedFlop2 by remember { mutableStateOf(false) }
+    var expandedFlop3 by remember { mutableStateOf(false) }
+    var expandedTurn by remember { mutableStateOf(false) }
+    var expandedRiver by remember { mutableStateOf(false) }
+
+    val cards = listOf("A♠", "A♥", "A♦", "A♣", "K♠", "K♥", "K♦", "K♣", "Q♠", "Q♥", "Q♦", "Q♣", "J♠", "J♥", "J♦", "J♣", "10♠", "10♥", "10♦", "10♣", "9♠", "9♥", "9♦", "9♣", "8♠", "8♥", "8♦", "8♣", "7♠", "7♥", "7♦", "7♣", "6♠", "6♥", "6♦", "6♣", "5♠", "5♥", "5♦", "5♣", "4♠", "4♥", "4♦", "4♣", "3♠", "3♥", "3♦", "3♣", "2♠", "2♥", "2♦", "2♣")
 
     val modes = listOf("Agressif", "Passif", "Adaptatif")
     var selectedMode by remember { mutableStateOf("") }
@@ -135,17 +142,42 @@ fun PokerAdvisorScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         // Sélection des cartes de la main
-        CardSelector(card1Suit, card1Value, card2Suit, card2Value, suits, values,
-            expandedCard1Suit, expandedCard1Value, expandedCard2Suit, expandedCard2Value,
-            onCard1SuitSelected = { suit -> card1Suit = suit },
-            onCard1ValueSelected = { value -> card1Value = value },
-            onCard2SuitSelected = { suit -> card2Suit = suit },
-            onCard2ValueSelected = { value -> card2Value = value },
-            onExpandedCard1SuitChanged = { expandedCard1Suit = it },
-            onExpandedCard1ValueChanged = { expandedCard1Value = it },
-            onExpandedCard2SuitChanged = { expandedCard2Suit = it },
-            onExpandedCard2ValueChanged = { expandedCard2Value = it }
+
+        CardSelector(
+            card1 = card1,
+            card2 = card2,
+            flop1 = flop1,
+            flop2 = flop2,
+            flop3 = flop3,
+            turn = turn,
+            river = river,
+            cards = cards,
+            expandedCard1 = expandedCard1,
+            expandedCard2 = expandedCard2,
+            expandedFlop1 = expandedFlop1,
+            expandedFlop2 = expandedFlop2,
+            expandedFlop3 = expandedFlop3,
+            expandedTurn = expandedTurn,
+            expandedRiver = expandedRiver,
+            onCard1Selected = { card1 = it },
+            onCard2Selected = { card2 = it },
+            onFlop1Selected = { flop1 = it },
+            onFlop2Selected = { flop2 = it },
+            onFlop3Selected = { flop3 = it },
+            onTurnSelected = { turn = it },
+            onRiverSelected = { river = it },
+            onExpandedCard1Changed = { expandedCard1 = it },
+            onExpandedCard2Changed = { expandedCard2 = it },
+            onExpandedFlop1Changed = { expandedFlop1 = it },
+            onExpandedFlop2Changed = { expandedFlop2 = it },
+            onExpandedFlop3Changed = { expandedFlop3 = it },
+            onExpandedTurnChanged = { expandedTurn = it },
+            onExpandedRiverChanged = { expandedRiver = it }
         )
+
+
+
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -163,10 +195,13 @@ fun PokerAdvisorScreen() {
             bigBlind = bigBlind,
             position = position,
             selectedMode = selectedMode,
-            card1Suit = card1Suit,
-            card1Value = card1Value,
-            card2Suit = card2Suit,
-            card2Value = card2Value,
+            card1 = card1,
+            card2 = card2,
+            flop1 = flop1,
+            flop2 = flop2,
+            flop3 = flop3,
+            turn = turn,
+            river = river,
             onAdviceReceived = { advice ->
                 adviceText = advice
                 showDialog = true
@@ -183,6 +218,7 @@ fun PokerAdvisorScreen() {
         if (currentPlayerIndex != null) {
             PlayerInfoDialog(
                 playerInfo = playerInfo.getOrPut(currentPlayerIndex!!) { PlayerInfo() },
+                playerIndex = currentPlayerIndex!!,
                 onDismiss = { updatedPlayerInfo ->
                     if (updatedPlayerInfo != null) {
                         playerInfo[currentPlayerIndex!!] = updatedPlayerInfo
