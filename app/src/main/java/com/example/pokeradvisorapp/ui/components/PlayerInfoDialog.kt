@@ -3,7 +3,6 @@ package com.example.pokeradvisorapp.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,7 +11,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -20,26 +18,33 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-
 @Composable
-fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int ,onDismiss: (PlayerInfo?) -> Unit) {
+fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int, onDismiss: (PlayerInfo?) -> Unit) {
     var stack by remember { mutableStateOf(playerInfo.stack) }
     var lastAction by remember { mutableStateOf(playerInfo.lastAction) } // Fold par défaut
     var actualMood by remember { mutableStateOf(playerInfo.actualMood) }
-    var bouton by remember { mutableStateOf(playerInfo.bouton) }
+    var historyActions by remember { mutableStateOf(playerInfo.historyActions.joinToString(separator = ", ")) }
 
-    val actions = listOf("Check", "Call", "Raise", "All in","Fold")
+    val actions = listOf("Check", "Call", "Raise", "All in", "Fold")
     var expanded by remember { mutableStateOf(false) }
     var raiseAmount by remember { mutableStateOf(playerInfo.raiseAmount) }
 
     AlertDialog(
         onDismissRequest = { onDismiss(null) },
         confirmButton = {
-            Button(onClick = { onDismiss(PlayerInfo(stack, lastAction, actualMood, bouton , raiseAmount)) }) {
+            Button(onClick = {
+                val updatedPlayerInfo = PlayerInfo(
+                    stack = stack,
+                    lastAction = lastAction,
+                    actualMood = actualMood,
+                    raiseAmount = raiseAmount,
+                    historyActions = historyActions.split(", ").map { it.trim() }
+                )
+                onDismiss(updatedPlayerInfo)
+            }) {
                 Text("Confirmer")
             }
         },
@@ -100,11 +105,14 @@ fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int ,onDismiss: (Playe
                     label = { Text("Humeur actuelle") },
                     modifier = Modifier.fillMaxWidth()
                 )
+
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Bouton")
-                    Switch(checked = bouton, onCheckedChange = { bouton = it })
-                }
+                TextField(
+                    value = historyActions,
+                    onValueChange = { historyActions = it },
+                    label = { Text("Historique des actions") },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     )
@@ -114,15 +122,14 @@ data class PlayerInfo(
     var stack: String = "",
     var lastAction: String = "",
     var actualMood: String = "",
-    var bouton: Boolean = false,
-    var raiseAmount: String = ""
+    var raiseAmount: String = "",
+    var historyActions: List<String> = emptyList()
 )
 
 data class TableInfo(
     val playersNumber: Int,
     val blinds: String,
     val hand: String,
-    val step: String,
     val buttonPosition: Int,
     val myPosition: Int,
     val myStack: String

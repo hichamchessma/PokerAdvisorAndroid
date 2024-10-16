@@ -35,11 +35,14 @@ fun PokerAdvisorScreen() {
     var expandedBigBlind by remember { mutableStateOf(false) }
     val bigBlindOptions = listOf("20", "40", "100", "200")
 
-    var position by remember { mutableStateOf("") }
+    var positionPlayer by remember { mutableStateOf("") }
+    var positionButton by remember { mutableStateOf("") }
     var expandedPosition by remember { mutableStateOf(false) }
+    var expandedPositionButton by remember { mutableStateOf(false) }
     val positionOptions = (1..9).toList()
+    val positionButtonOptions = (1..9).toList()
 
-// Card Selection States
+    // Card Selection States
     var card1 by remember { mutableStateOf("") }
     var card2 by remember { mutableStateOf("") }
 
@@ -69,6 +72,9 @@ fun PokerAdvisorScreen() {
     val playerInfo = remember { mutableStateMapOf<Int, PlayerInfo>() }
     var currentPlayerIndex by remember { mutableStateOf<Int?>(null) }
 
+    // State for tracking my actions
+    val myHistory = remember { mutableStateOf(listOf<String>()) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -77,10 +83,13 @@ fun PokerAdvisorScreen() {
         verticalArrangement = Arrangement.Top
     ) {
         // Table de poker avec les joueurs
-        PokerTableComponent(playerInfo, currentPlayerIndex) {
-            currentPlayerIndex = it
-        }
-
+        PokerTableComponent(
+            playerInfo = playerInfo,
+            currentPlayerIndex = currentPlayerIndex,
+            onPlayerClick = { index -> currentPlayerIndex = index },
+            myPositionIndex = positionPlayer.toIntOrNull(),
+            buttonPosition = positionButton.toIntOrNull()
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
         // Menu déroulant pour "Nombre de joueurs"
@@ -118,7 +127,7 @@ fun PokerAdvisorScreen() {
 
         // Menu déroulant pour "Position du joueur"
         Text(
-            text = if (position.isEmpty()) "Position du joueur" else "Position : $position",
+            text = if (positionPlayer.isEmpty()) "Ma position" else "Je suis à : $positionPlayer",
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { expandedPosition = !expandedPosition }
@@ -132,8 +141,32 @@ fun PokerAdvisorScreen() {
                 DropdownMenuItem(
                     text = { Text(text = option.toString()) },
                     onClick = {
-                        position = option.toString()
+                        positionPlayer = option.toString()
                         expandedPosition = false
+                    }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = if (positionButton.isEmpty()) "Boutton" else "Boutton à : $positionButton",
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expandedPositionButton = !expandedPositionButton }
+                .padding(vertical = 8.dp)
+        )
+        DropdownMenu(
+            expanded = expandedPositionButton,
+            onDismissRequest = { expandedPositionButton = false }
+        ) {
+            positionButtonOptions.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(text = option.toString()) },
+                    onClick = {
+                        positionButton = option.toString()
+                        expandedPositionButton = false
                     }
                 )
             }
@@ -175,10 +208,6 @@ fun PokerAdvisorScreen() {
             onExpandedRiverChanged = { expandedRiver = it }
         )
 
-
-
-
-
         Spacer(modifier = Modifier.height(16.dp))
 
         // Mode Selection
@@ -193,7 +222,8 @@ fun PokerAdvisorScreen() {
         AdviceButton(
             nbrPlayers = nbrPlayers,
             bigBlind = bigBlind,
-            position = position,
+            positionPlayer = positionPlayer,
+            positionButton = positionButton,
             selectedMode = selectedMode,
             card1 = card1,
             card2 = card2,
@@ -202,6 +232,9 @@ fun PokerAdvisorScreen() {
             flop3 = flop3,
             turn = turn,
             river = river,
+            playerInfo = playerInfo,
+            myHistory = myHistory.value,
+            myStack = "1000", // Remplacez par la valeur réelle de votre stack
             onAdviceReceived = { advice ->
                 adviceText = advice
                 showDialog = true
@@ -213,7 +246,6 @@ fun PokerAdvisorScreen() {
                 showDialog = false
             }
         }
-
         // Player Info Dialog
         if (currentPlayerIndex != null) {
             PlayerInfoDialog(
