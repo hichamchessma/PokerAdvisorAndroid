@@ -1,4 +1,5 @@
-/*PokerAdvisorScreen*/
+/*PokerAdvisorScreen*//*
+
 package com.example.pokeradvisorapp.ui.components
 
 import android.widget.Toast
@@ -15,15 +16,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -42,7 +39,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.PopupProperties
 import com.example.pokeradvisorapp.OpenAiResponse
 import com.example.pokeradvisorapp.R
 import com.example.pokeradvisorapp.RetrofitInstance
@@ -521,3 +517,4 @@ data class PlayerInfoDetails(
     val mood: String,
     val historyActions: List<String>
 )
+*/
