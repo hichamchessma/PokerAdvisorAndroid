@@ -1,16 +1,21 @@
 /*PokerAdvisorScreen*/
 package com.example.pokeradvisorapp.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,7 +27,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
+import com.example.pokeradvisorapp.R
+import kotlinx.coroutines.delay
 @Composable
 fun PokerAdvisorScreen() {
     val context = LocalContext.current
@@ -59,6 +69,7 @@ fun PokerAdvisorScreen() {
     var expandedFlop3 by remember { mutableStateOf(false) }
     var expandedTurn by remember { mutableStateOf(false) }
     var expandedRiver by remember { mutableStateOf(false) }
+    var expandedPositions by remember { mutableStateOf(false) }
 
     val cards = listOf("A♠", "A♥", "A♦", "A♣", "K♠", "K♥", "K♦", "K♣", "Q♠", "Q♥", "Q♦", "Q♣", "J♠", "J♥", "J♦", "J♣", "10♠", "10♥", "10♦", "10♣", "9♠", "9♥", "9♦", "9♣", "8♠", "8♥", "8♦", "8♣", "7♠", "7♥", "7♦", "7♣", "6♠", "6♥", "6♦", "6♣", "5♠", "5♥", "5♦", "5♣", "4♠", "4♥", "4♦", "4♣", "3♠", "3♥", "3♦", "3♣", "2♠", "2♥", "2♦", "2♣")
 
@@ -70,11 +81,20 @@ fun PokerAdvisorScreen() {
 
     // State for tracking player-specific information
     val playerInfo = remember { mutableStateMapOf<Int, PlayerInfo>() }
+    val tempPlayerInfo = remember { mutableStateMapOf<Int, PlayerInfo>() }
     var currentPlayerIndex by remember { mutableStateOf<Int?>(null) }
 
     // State for tracking my actions
     val myHistory = remember { mutableStateOf(listOf<String>()) }
-
+    LaunchedEffect(Unit) {
+        expandedPositions = true
+        tempPlayerInfo.clear()
+        playerInfo.forEach { (position, info) ->
+            tempPlayerInfo[position] = info.copy()
+        }
+        delay(500) // Petit délai pour permettre l'ouverture du menu avant de le refermer
+        expandedPositions = false // Fermer le menu automatiquement
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -90,30 +110,79 @@ fun PokerAdvisorScreen() {
             myPositionIndex = positionPlayer.toIntOrNull(),
             buttonPosition = positionButton.toIntOrNull()
         )
-        Spacer(modifier = Modifier.height(16.dp))
 
-        // Menu déroulant pour "Nombre de joueurs"
-        Text(
-            text = if (nbrPlayers.isEmpty()) "Nombre de joueurs à la table" else "Nombre de joueurs : $nbrPlayers",
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { expandedNbrPlayers = true }
-                .padding(vertical = 8.dp)
-        )
-        DropdownMenu(
-            expanded = expandedNbrPlayers,
-            onDismissRequest = { expandedNbrPlayers = false }
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.Start,  // Réduire l'espacement entre les cartes
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            playersOptions.forEach { option ->
+            Text(
+                text = if (nbrPlayers.isEmpty()) "Ajouter " else "Ajouter  : $nbrPlayers",
+                modifier = Modifier
+                    .clickable {
+                        expandedPositions = true
+                        tempPlayerInfo.clear()
+                        playerInfo.forEach { (position, info) ->
+                            tempPlayerInfo[position] = info.copy()
+                        }
+                    }
+                    .padding(end = 8.dp)
+            )
+            Image(
+                painter = painterResource(id = R.drawable.poker_player),
+                contentDescription = "Joueur",
+                modifier = Modifier.size(24.dp)
+                    .padding(start = 4.dp),
+            )
+        }
+            DropdownMenu(
+                expanded = expandedPositions,
+                onDismissRequest = { expandedPositions = false }
+            ) {
+                (1..9).forEach { position ->
+                    val player = playerInfo.getOrPut(position) { PlayerInfo() }
+
+                    // Ajouter l'élément du menu pour chaque position
+                    DropdownMenuItem(
+                        text = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Position $position", modifier = Modifier.weight(1f))
+                                Switch(
+                                    checked = tempPlayerInfo[position]?.inOutState
+                                        ?: false, // Utilisez inOutState
+                                    onCheckedChange = { isChecked ->
+                                        tempPlayerInfo[position]?.inOutState =
+                                            isChecked // Mettez à jour inOutState
+                                        tempPlayerInfo[position]?.inOut =
+                                            isChecked // Assurez-vous que inOut est également mis à jour
+                                    }
+                                )
+                            }
+                        },
+                        onClick = { /* Le switch gère l'état, pas besoin d'action sur l'item */ }
+                    )
+                }
+                // Bouton "Valider"
                 DropdownMenuItem(
-                    text = { Text(text = option.toString()) },
+                    text = {
+                        Text("Valider", modifier = Modifier.align(Alignment.CenterHorizontally))
+                    },
                     onClick = {
-                        nbrPlayers = option.toString()
-                        expandedNbrPlayers = false
+                        tempPlayerInfo.forEach { (position, tempInfo) ->
+                            playerInfo[position] = tempInfo.copy()
+                        }
+                        expandedPositions = false // Fermer le menu lorsque "Valider" est cliqué
                     }
                 )
             }
-        }
+
 
         Spacer(modifier = Modifier.height(16.dp))
 

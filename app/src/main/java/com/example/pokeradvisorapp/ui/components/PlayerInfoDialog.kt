@@ -3,6 +3,7 @@ package com.example.pokeradvisorapp.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -11,14 +12,19 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -27,20 +33,28 @@ fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int, onDismiss: (Playe
     var lastAction by remember { mutableStateOf(playerInfo.lastAction) } // Fold par défaut
     var actualMood by remember { mutableStateOf(playerInfo.actualMood) }
     var historyActions by remember { mutableStateOf(playerInfo.historyActions.joinToString(separator = ", ")) }
-
-    val actions = listOf("Check", "Call", "Raise", "All in", "Fold")
     var expanded by remember { mutableStateOf(false) }
     var raiseAmount by remember { mutableStateOf(playerInfo.raiseAmount) }
+    var isRaiseSelected by remember { mutableStateOf(false) }
+    var isCallSelected by remember { mutableStateOf(false) }
+    var inOut by remember { mutableStateOf(playerInfo.inOut) }
 
+    val actions = listOf("Check", "Call", "Raise", "All in", "Fold")
+    isRaiseSelected = playerInfo.lastAction == "Raise"
+    isCallSelected = playerInfo.lastAction == "Call"
+    val focusRequester = remember { FocusRequester() }
+    var callAmount by remember { mutableStateOf(playerInfo.callAmount) }
     AlertDialog(
         onDismissRequest = { onDismiss(null) },
         confirmButton = {
             Button(onClick = {
                 val updatedPlayerInfo = PlayerInfo(
+                    inOut = inOut,
                     stack = stack,
                     lastAction = lastAction,
                     actualMood = actualMood,
-                    raiseAmount = raiseAmount,
+                    raiseAmount = if (isRaiseSelected) raiseAmount else "",
+                    callAmount = if (isCallSelected) callAmount else "",
                     historyActions = historyActions.split(", ").map { it.trim() }
                 )
                 onDismiss(updatedPlayerInfo)
@@ -56,6 +70,13 @@ fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int, onDismiss: (Playe
         title = { Text(text = "Player ${playerIndex + 1}") }, // Modifier le titre
         text = {
             Column {
+                Text(text = "Joueur In/Out")
+                Switch(
+                    checked = inOut,
+                    onCheckedChange = { inOut = it }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
                 TextField(
                     value = stack,
                     onValueChange = { stack = it },
@@ -65,37 +86,93 @@ fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int, onDismiss: (Playe
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Menu déroulant pour "Dernière action"
-                Text(
-                    text = "Dernière action : $lastAction",
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { expanded = true }
-                        .padding(vertical = 8.dp)
-                )
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    actions.forEach { action ->
-                        DropdownMenuItem(
-                            text = { Text(text = action) },
-                            onClick = {
-                                lastAction = action
-                                expanded = false
-                            }
-                        )
+                    Text(
+                        text = "Dernière action :",
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { expanded = true }
+                            .padding(end = 8.dp)
+                    )
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        actions.forEach { action ->
+                            DropdownMenuItem(
+                                text = { Text(text = action) },
+                                onClick = {
+                                    lastAction = action
+                                    expanded = false
+                                    isRaiseSelected = action == "Raise"
+                                    isCallSelected = action == "Call"
+                                    if (!isRaiseSelected) {
+                                        raiseAmount = ""
+                                    }
+                                    if (!isCallSelected) {
+                                        callAmount = ""
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
 
-                // Champ pour entrer le montant du bet si "Raise" est sélectionné
-                if (lastAction == "Raise") {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    TextField(
-                        value = raiseAmount,
-                        onValueChange = { raiseAmount = it },
-                        label = { Text("Montant du pari") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                if (isRaiseSelected) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Raise",
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 8.dp)
+                        )
+                        TextField(
+                            value = raiseAmount,
+                            onValueChange = { raiseAmount = it },
+                            modifier = Modifier
+                                .weight(2f)
+                                .focusRequester(focusRequester)
+                        )
+                    }
+                    LaunchedEffect(Unit) {
+                        focusRequester.requestFocus()
+                    }
+                }
+
+                if (isCallSelected) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Call",
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 8.dp)
+                        )
+                        TextField(
+                            value = callAmount,
+                            onValueChange = { callAmount = it },
+                            modifier = Modifier
+                                .weight(2f)
+                                .focusRequester(focusRequester)
+                        )
+                    }
+                    LaunchedEffect(Unit) {
+                        focusRequester.requestFocus()
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -123,8 +200,12 @@ data class PlayerInfo(
     var lastAction: String = "",
     var actualMood: String = "",
     var raiseAmount: String = "",
-    var historyActions: List<String> = emptyList()
-)
+    var callAmount: String = "",
+    var historyActions: List<String> = emptyList(),
+    var inOut: Boolean = false
+){
+    var inOutState by mutableStateOf(inOut)
+}
 
 data class TableInfo(
     val playersNumber: Int,

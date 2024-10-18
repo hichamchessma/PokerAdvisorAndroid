@@ -1,6 +1,7 @@
 /*AdviceButton*/
 package com.example.pokeradvisorapp.ui.components
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
@@ -60,15 +61,24 @@ fun AdviceButton(
                 val myInfo = "moi($myActions)"
 
                 // Assembler la requête complète
-                val requestString = "$tableInfo $playersInfo $myInfo"
+                val requeststructure="voici le format table infos avec 9joueurs  ti(joueurs encore dans le coup,bigBlind,mes cartes,positionButton,positionPlayer,myStack,board)" +
+                        "\n players infos pi(stack,lastAction,actualMood,(actionsHistory)) "
+                val requestString = "$tableInfo $playersInfo "
+
+                // Ajouter les instructions pour le format de réponse attendu
+                val responseFormatInstructions = "réponds dans ce format en suivant GTO: {t (sec)\nacting (nerveux/calme/je-m'en-foutiste)\nAction: B+montant/F/CH/C }"
 
                 val messages = listOf(
-                    Message(role = "user", content = requestString)
+                    Message(role = "user", content = "$requeststructure\n$requestString\n\n$responseFormatInstructions")
                 )
 
                 val request = OpenAiRequest(
                     model = "gpt-4",
                     messages = messages
+                )
+
+                // Loguer la requête dans la console
+                Log.d("AdviceButton", "Request to GPT-4: $requeststructure\n$requestString\n\n$responseFormatInstructions"
                 )
 
                 // Utilisation des coroutines pour envoyer la requête en arrière-plan

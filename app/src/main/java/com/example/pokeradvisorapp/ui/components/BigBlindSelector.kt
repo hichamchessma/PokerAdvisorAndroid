@@ -26,7 +26,7 @@ fun BigBlindSelector(
     var expanded by remember { mutableStateOf(expandedBigBlind) }
 
     Text(
-        text = if (bigBlind.isEmpty()) "Valeur de la Big Blind" else "Big Blind : $bigBlind",
+        text = if (bigBlind.isEmpty()) "Blinds" else "Blinds : $bigBlind",
         modifier = Modifier
             .fillMaxWidth()
             .clickable { expanded = !expanded }
@@ -51,7 +51,7 @@ fun BigBlindSelector(
         onValueChange = { newValue ->
             onBigBlindSelected(newValue, expanded)
         },
-        label = { Text("Entrer la valeur de la Big Blind") },
+        label = { Text("") },
         modifier = Modifier.fillMaxWidth()
     )
 }
