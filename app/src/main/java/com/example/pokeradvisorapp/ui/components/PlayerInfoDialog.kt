@@ -28,13 +28,13 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int, onDismiss: (PlayerInfo?) -> Unit) {
+fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int, onDismiss: (PlayerInfo?) -> Unit, focusOnStack: Boolean = false) {
     var stack by remember { mutableStateOf(playerInfo.stack) }
     var lastAction by remember { mutableStateOf(playerInfo.lastAction) } // Fold par défaut
     var actualMood by remember { mutableStateOf(playerInfo.actualMood) }
     var historyActions by remember { mutableStateOf(playerInfo.historyActions.joinToString(separator = ", ")) }
     var expanded by remember { mutableStateOf(false) }
-    var raiseAmount by remember { mutableStateOf(playerInfo.raiseAmount) }
+    var betAmount by remember { mutableStateOf(playerInfo.betAmount) }
     var isRaiseSelected by remember { mutableStateOf(false) }
     var isCallSelected by remember { mutableStateOf(false) }
     var inOut by remember { mutableStateOf(playerInfo.inOut) }
@@ -43,7 +43,6 @@ fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int, onDismiss: (Playe
     isRaiseSelected = playerInfo.lastAction == "Raise"
     isCallSelected = playerInfo.lastAction == "Call"
     val focusRequester = remember { FocusRequester() }
-    var callAmount by remember { mutableStateOf(playerInfo.callAmount) }
     AlertDialog(
         onDismissRequest = { onDismiss(null) },
         confirmButton = {
@@ -53,8 +52,7 @@ fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int, onDismiss: (Playe
                     stack = stack,
                     lastAction = lastAction,
                     actualMood = actualMood,
-                    raiseAmount = if (isRaiseSelected) raiseAmount else "",
-                    callAmount = if (isCallSelected) callAmount else "",
+                    betAmount = if (isRaiseSelected||isCallSelected) betAmount else "",
                     historyActions = historyActions.split(", ").map { it.trim() }
                 )
                 onDismiss(updatedPlayerInfo)
@@ -81,8 +79,13 @@ fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int, onDismiss: (Playe
                     value = stack,
                     onValueChange = { stack = it },
                     label = { Text("Stack") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester)
                 )
+                LaunchedEffect(Unit) {
+                    if (focusOnStack) {
+                        focusRequester.requestFocus() // Applique le focus si demandé
+                    }
+                }
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Menu déroulant pour "Dernière action"
@@ -93,7 +96,7 @@ fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int, onDismiss: (Playe
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Dernière action :",
+                        text = "Action",
                         modifier = Modifier
                             .weight(1f)
                             .clickable { expanded = true }
@@ -112,10 +115,10 @@ fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int, onDismiss: (Playe
                                     isRaiseSelected = action == "Raise"
                                     isCallSelected = action == "Call"
                                     if (!isRaiseSelected) {
-                                        raiseAmount = ""
+                                        betAmount = ""
                                     }
                                     if (!isCallSelected) {
-                                        callAmount = ""
+                                        betAmount = ""
                                     }
                                 }
                             )
@@ -137,8 +140,8 @@ fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int, onDismiss: (Playe
                                 .padding(end = 8.dp)
                         )
                         TextField(
-                            value = raiseAmount,
-                            onValueChange = { raiseAmount = it },
+                            value = betAmount,
+                            onValueChange = { betAmount = it },
                             modifier = Modifier
                                 .weight(2f)
                                 .focusRequester(focusRequester)
@@ -163,8 +166,8 @@ fun PlayerInfoDialog(playerInfo: PlayerInfo, playerIndex: Int, onDismiss: (Playe
                                 .padding(end = 8.dp)
                         )
                         TextField(
-                            value = callAmount,
-                            onValueChange = { callAmount = it },
+                            value = betAmount,
+                            onValueChange = { betAmount = it },
                             modifier = Modifier
                                 .weight(2f)
                                 .focusRequester(focusRequester)
@@ -199,26 +202,10 @@ data class PlayerInfo(
     var stack: String = "",
     var lastAction: String = "",
     var actualMood: String = "",
-    var raiseAmount: String = "",
-    var callAmount: String = "",
+    var betAmount: String = "",
     var historyActions: List<String> = emptyList(),
     var inOut: Boolean = false
 ){
     var inOutState by mutableStateOf(inOut)
 }
 
-data class TableInfo(
-    val playersNumber: Int,
-    val blinds: String,
-    val hand: String,
-    val buttonPosition: Int,
-    val myPosition: Int,
-    val myStack: String
-)
-
-data class PlayerInfoDetails(
-    val stack: String,
-    val action: String,
-    val mood: String,
-    val historyActions: List<String>
-)

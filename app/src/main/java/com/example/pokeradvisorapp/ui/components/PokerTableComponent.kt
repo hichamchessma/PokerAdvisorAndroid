@@ -30,7 +30,11 @@ fun PokerTableComponent(
     currentPlayerIndex: Int?,
     onPlayerClick: (Int) -> Unit,
     myPositionIndex: Int?,
-    buttonPosition: Int?
+    buttonPosition: Int?,
+    smallBlindPosition: Int?,
+    bigBlindPosition: Int?,
+    smallBlindAmount: String,
+    bigBlindAmount: String,
 ) {
     Box(
         modifier = Modifier
@@ -56,15 +60,27 @@ fun PokerTableComponent(
         )
 
         val buttonPositions = listOf(
-            Modifier.offset(x = 255.dp, y = 55.dp),
-            Modifier.offset(x = 305.dp, y = 70.dp),
-            Modifier.offset(x = 305.dp, y = 105.dp),
-            Modifier.offset(x = 255.dp, y = 125.dp),
-            Modifier.offset(x = 180.dp, y = 125.dp),
-            Modifier.offset(x = 105.dp, y = 125.dp),
-            Modifier.offset(x = 55.dp, y = 105.dp),
+            Modifier.offset(x = 255.dp, y = 40.dp),
+            Modifier.offset(x = 310.dp, y = 60.dp),
+            Modifier.offset(x = 310.dp, y = 115.dp),
+            Modifier.offset(x = 255.dp, y = 133.dp),
+            Modifier.offset(x = 180.dp, y = 133.dp),
+            Modifier.offset(x = 105.dp, y = 133.dp),
+            Modifier.offset(x = 55.dp, y = 110.dp),
+            Modifier.offset(x = 55.dp, y = 60.dp),
+            Modifier.offset(x = 105.dp, y = 40.dp)
+        )
+
+        val betPositions = listOf(
+            Modifier.offset(x = 225.dp, y = 55.dp),
+            Modifier.offset(x = 295.dp, y = 75.dp),
+            Modifier.offset(x = 295.dp, y = 95.dp),
+            Modifier.offset(x = 250.dp, y = 110.dp),
+            Modifier.offset(x = 175.dp, y = 110.dp),
+            Modifier.offset(x = 100.dp, y = 110.dp),
+            Modifier.offset(x = 55.dp, y = 90.dp),
             Modifier.offset(x = 55.dp, y = 70.dp),
-            Modifier.offset(x = 105.dp, y = 55.dp)
+            Modifier.offset(x = 115.dp, y = 55.dp)
         )
 
         playerPositions.forEachIndexed { index, positionModifier ->
@@ -84,6 +100,9 @@ fun PokerTableComponent(
                             color = Color.White,
                             modifier = Modifier
                                 .offset(y = -30.dp)
+                                .clickable {
+                                    onPlayerClick(index+1 ) // Ouvre le PlayerInfoDialog
+                                }
                                 .then(if (player.stack.isNotEmpty())
                                     Modifier.background(Color.Black.copy(alpha = 0.7f),
                                     shape = RoundedCornerShape(50)
@@ -96,6 +115,9 @@ fun PokerTableComponent(
                             color = Color.White,
                             modifier = Modifier
                                 .offset(y = 30.dp)
+                                .clickable {
+                                    onPlayerClick(index+1 ) // Ouvre le PlayerInfoDialog
+                                }
                                 .then(if (player.stack.isNotEmpty())
                                     Modifier.background(Color.Black.copy(alpha = 0.7f),
                                         shape = RoundedCornerShape(50)
@@ -128,8 +150,30 @@ fun PokerTableComponent(
                     painter = painterResource(id = R.drawable.poker_dealer),
                     contentDescription = "Dealer",
                     modifier = Modifier
-                        .size(20.dp)
+                        .size(17.dp)
                         .clip(CircleShape)
+                )
+            }
+        }
+
+
+        betPositions.forEachIndexed { index, betModifier ->
+            val player = playerInfo[index + 1]
+            if (player != null && player.inOut) {
+                Text(
+                    text = when (index + 1) {
+                        smallBlindPosition -> " $smallBlindAmount"
+                        bigBlindPosition -> " $bigBlindAmount"
+                        else -> player.betAmount ?: ""
+                    },
+                    color = when (index + 1) {
+                        smallBlindPosition -> Color.Cyan
+                        bigBlindPosition -> Color.Red
+                        else -> Color.White
+                    },
+                    modifier = betModifier
+                        .background(Color.Black.copy(alpha = 0.0f), shape = RoundedCornerShape(50))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
                 )
             }
         }

@@ -12,12 +12,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -26,35 +26,32 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import com.example.pokeradvisorapp.R
 import kotlinx.coroutines.delay
+
 @Composable
 fun PokerAdvisorScreen() {
     val context = LocalContext.current
 
-    var nbrPlayers by remember { mutableStateOf("") }
-    var expandedNbrPlayers by remember { mutableStateOf(false) }
-    val playersOptions = (2..9).toList()
+    var nbrPlayers by remember { mutableStateOf("3") }
 
-    var bigBlind by remember { mutableStateOf("") }
+    var bigBlind by remember { mutableStateOf("40") }
     var expandedBigBlind by remember { mutableStateOf(false) }
     val bigBlindOptions = listOf("20", "40", "100", "200")
 
-    var positionPlayer by remember { mutableStateOf("") }
-    var positionButton by remember { mutableStateOf("") }
+    var positionPlayer by remember { mutableStateOf("3") }
+    var positionButton by remember { mutableStateOf("1") }
     var expandedPosition by remember { mutableStateOf(false) }
     var expandedPositionButton by remember { mutableStateOf(false) }
     val positionOptions = (1..9).toList()
     val positionButtonOptions = (1..9).toList()
+    var selectedPlayersCount by remember { mutableStateOf(9) }
 
     // Card Selection States
-    var card1 by remember { mutableStateOf("") }
-    var card2 by remember { mutableStateOf("") }
+    var card1 by remember { mutableStateOf("A♥") }
+    var card2 by remember { mutableStateOf("Q♠") }
 
     var flop1 by remember { mutableStateOf("") }
     var flop2 by remember { mutableStateOf("") }
@@ -70,6 +67,8 @@ fun PokerAdvisorScreen() {
     var expandedTurn by remember { mutableStateOf(false) }
     var expandedRiver by remember { mutableStateOf(false) }
     var expandedPositions by remember { mutableStateOf(false) }
+    var smallBlindPosition by remember { mutableStateOf<Int?>(null) }
+    var bigBlindPosition by remember { mutableStateOf<Int?>(null) }
 
     val cards = listOf("A♠", "A♥", "A♦", "A♣", "K♠", "K♥", "K♦", "K♣", "Q♠", "Q♥", "Q♦", "Q♣", "J♠", "J♥", "J♦", "J♣", "10♠", "10♥", "10♦", "10♣", "9♠", "9♥", "9♦", "9♣", "8♠", "8♥", "8♦", "8♣", "7♠", "7♥", "7♦", "7♣", "6♠", "6♥", "6♦", "6♣", "5♠", "5♥", "5♦", "5♣", "4♠", "4♥", "4♦", "4♣", "3♠", "3♥", "3♦", "3♣", "2♠", "2♥", "2♦", "2♣")
 
@@ -80,7 +79,45 @@ fun PokerAdvisorScreen() {
     var adviceText by remember { mutableStateOf("") }
 
     // State for tracking player-specific information
-    val playerInfo = remember { mutableStateMapOf<Int, PlayerInfo>() }
+    val playerInfo = remember { mutableStateMapOf<Int, PlayerInfo>().apply {
+        put(1, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
+        put(2, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
+        put(3, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
+        put(4, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
+        put(5, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
+        put(6, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
+        put(7, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
+        put(8, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
+        put(9, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
+        //(4..9).forEach { put(it, PlayerInfo(stack = "1000", inOut = false)) }
+    } }
+
+    // Utilisez LaunchedEffect à l'intérieur de cette fonction @Composable
+    LaunchedEffect(playerInfo.values.map { it.inOut }, positionButton) {
+        val activePositions = playerInfo.filter { it.value.inOut }.keys.toList().sorted()
+        val buttonPositionValue = positionButton.toIntOrNull()
+        if (buttonPositionValue != null && activePositions.contains(buttonPositionValue)) {
+            val buttonIndex = activePositions.indexOf(buttonPositionValue)
+
+            if (activePositions.size == 2) {
+                // Si seulement 2 joueurs, le bouton est la big blind et l'autre joueur la small blind
+                smallBlindPosition = if (buttonIndex == 0) activePositions[1] else activePositions[0]
+                bigBlindPosition = buttonPositionValue
+            } else {
+                // Sinon, définir small blind et big blind en fonction du bouton
+                smallBlindPosition = if (buttonIndex + 1 < activePositions.size) activePositions[buttonIndex + 1] else activePositions[0]
+                bigBlindPosition = if (buttonIndex + 2 < activePositions.size) activePositions[buttonIndex + 2] else activePositions[(buttonIndex + 2) % activePositions.size]
+            }
+            // Mettre à jour le montant de mise des joueurs
+            playerInfo.forEach { (position, player) ->
+                player.betAmount = when (position) {
+                    smallBlindPosition -> (bigBlind.toInt() / 2).toString() // Petite blind (la moitié de la grosse blind)
+                    bigBlindPosition -> bigBlind // Grande blind (valeur de la grosse blind)
+                    else -> "0" // Les autres joueurs ont un betAmount de 0 par défaut
+                }
+            }
+        }
+    }
     val tempPlayerInfo = remember { mutableStateMapOf<Int, PlayerInfo>() }
     var currentPlayerIndex by remember { mutableStateOf<Int?>(null) }
 
@@ -108,7 +145,11 @@ fun PokerAdvisorScreen() {
             currentPlayerIndex = currentPlayerIndex,
             onPlayerClick = { index -> currentPlayerIndex = index },
             myPositionIndex = positionPlayer.toIntOrNull(),
-            buttonPosition = positionButton.toIntOrNull()
+            buttonPosition = positionButton.toIntOrNull(),
+            smallBlindPosition = smallBlindPosition,
+            bigBlindPosition = bigBlindPosition,
+            smallBlindAmount = (bigBlind.toInt() / 2).toString(),
+            bigBlindAmount = bigBlind,
         )
 
 
@@ -117,11 +158,11 @@ fun PokerAdvisorScreen() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.Start,  // Réduire l'espacement entre les cartes
+            horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (nbrPlayers.isEmpty()) "Ajouter " else "Ajouter  : $nbrPlayers",
+                text = if (nbrPlayers.isEmpty()) "$selectedPlayersCount Players " else "$selectedPlayersCount Players  ",
                 modifier = Modifier
                     .clickable {
                         expandedPositions = true
@@ -146,7 +187,6 @@ fun PokerAdvisorScreen() {
                 (1..9).forEach { position ->
                     val player = playerInfo.getOrPut(position) { PlayerInfo() }
 
-                    // Ajouter l'élément du menu pour chaque position
                     DropdownMenuItem(
                         text = {
                             Row(
@@ -155,18 +195,16 @@ fun PokerAdvisorScreen() {
                             ) {
                                 Text("Position $position", modifier = Modifier.weight(1f))
                                 Switch(
-                                    checked = tempPlayerInfo[position]?.inOutState
-                                        ?: false, // Utilisez inOutState
+                                    checked = tempPlayerInfo[position]?.inOutState?: false, // Utilisez inOutState
                                     onCheckedChange = { isChecked ->
-                                        tempPlayerInfo[position]?.inOutState =
-                                            isChecked // Mettez à jour inOutState
-                                        tempPlayerInfo[position]?.inOut =
-                                            isChecked // Assurez-vous que inOut est également mis à jour
+                                        tempPlayerInfo[position]?.inOutState =isChecked // Mettez à jour inOutState
+                                        tempPlayerInfo[position]?.inOut =isChecked // Assurez-vous que inOut est également mis à jour
+                                        selectedPlayersCount = tempPlayerInfo.values.count { it.inOutState }
                                     }
                                 )
                             }
                         },
-                        onClick = { /* Le switch gère l'état, pas besoin d'action sur l'item */ }
+                        onClick = {  }
                     )
                 }
                 // Bouton "Valider"
@@ -178,7 +216,24 @@ fun PokerAdvisorScreen() {
                         tempPlayerInfo.forEach { (position, tempInfo) ->
                             playerInfo[position] = tempInfo.copy()
                         }
-                        expandedPositions = false // Fermer le menu lorsque "Valider" est cliqué
+                        expandedPositions = false
+                    },
+
+                    enabled = selectedPlayersCount >= 2
+
+                )
+
+                DropdownMenuItem(
+                    text = {
+                        Text("Vider", modifier = Modifier.align(Alignment.CenterHorizontally))
+                    },
+                    onClick = {
+                        playerInfo.forEach { (position, player) ->
+                            player.inOut = false
+                            player.inOutState = false
+                        }
+                        selectedPlayersCount = 0
+                        expandedPositions = false
                     }
                 )
             }
@@ -212,6 +267,8 @@ fun PokerAdvisorScreen() {
                     onClick = {
                         positionPlayer = option.toString()
                         expandedPosition = false
+                        playerInfo[option]?.inOut = true
+                        playerInfo[option]?.inOutState = true
                     }
                 )
             }
@@ -230,13 +287,13 @@ fun PokerAdvisorScreen() {
             expanded = expandedPositionButton,
             onDismissRequest = { expandedPositionButton = false }
         ) {
-            positionButtonOptions.forEach { option ->
+            playerInfo.filter { it.value.inOut }.forEach { (position, _) ->
                 DropdownMenuItem(
-                    text = { Text(text = option.toString()) },
+                    text = { Text(text = position.toString()) },
                     onClick = {
-                        positionButton = option.toString()
+                        positionButton = position.toString()
                         expandedPositionButton = false
-                    }
+                     }
                 )
             }
         }
@@ -325,7 +382,8 @@ fun PokerAdvisorScreen() {
                         playerInfo[currentPlayerIndex!!] = updatedPlayerInfo
                     }
                     currentPlayerIndex = null
-                }
+                },
+                focusOnStack = true
             )
         }
     }

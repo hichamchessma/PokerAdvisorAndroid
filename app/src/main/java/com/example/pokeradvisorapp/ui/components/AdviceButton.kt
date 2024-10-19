@@ -11,13 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.example.pokeradvisorapp.RetrofitInstance
 import com.example.pokeradvisorapp.ui.theme.Message
 import com.example.pokeradvisorapp.ui.theme.OpenAiRequest
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun AdviceButton(
@@ -50,11 +45,19 @@ fun AdviceButton(
                 val tableInfo = "ti($nbrPlayers,$bigBlind,${card1}${card2},$positionButton,$positionPlayer,$myStack,$board)"
 
                 // Construire les informations des joueurs (pi)
-                val playersInfo = playerInfo.map { (index, info) ->
-                    val playerId = "p${index + 1}"
-                    val actionsHistory = info.historyActions.joinToString(",")
-                    "$playerId(${info.stack},${info.lastAction},${info.actualMood},($actionsHistory))"
-                }.joinToString(" ")
+                val playersInfo = playerInfo.filter { it.value.inOut } // Filtrer les joueurs qui sont "in"
+                    .map { (index, info) ->
+                        if (index  == positionPlayer.toIntOrNull()) {
+                            // Si c'est ma position, utiliser "moi" au lieu de "pX"
+                            val actionsHistory = info.historyActions.joinToString(",")
+                            "moi(${info.stack},${info.lastAction},${info.actualMood},($actionsHistory))"
+                        } else {
+                            // Pour les autres joueurs
+                            val playerId = "p${index }"
+                            val actionsHistory = info.historyActions.joinToString(",")
+                            "$playerId(${info.stack},${info.lastAction},${info.actualMood},($actionsHistory))"
+                        }
+                    }.joinToString(" ")
 
                 // Construire les informations de mon historique (moi)
                 val myActions = myHistory.joinToString(",")
@@ -82,7 +85,7 @@ fun AdviceButton(
                 )
 
                 // Utilisation des coroutines pour envoyer la requête en arrière-plan
-                CoroutineScope(Dispatchers.IO).launch {
+               /* CoroutineScope(Dispatchers.IO).launch {
                     try {
                         val response = RetrofitInstance.openAiApiService.getChatCompletion(request).execute()
                         if (response.isSuccessful) {
@@ -103,7 +106,7 @@ fun AdviceButton(
                             Toast.makeText(context, "Échec de la requête : ${e.message}", Toast.LENGTH_LONG).show()
                         }
                     }
-                }
+                }*/
             }
         },
         modifier = Modifier.fillMaxWidth(),
