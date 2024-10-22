@@ -52,6 +52,7 @@ fun PlayerInfoDialog(
     var actualMood by remember { mutableStateOf(playerInfo.actualMood) }
     var historyActions by remember { mutableStateOf(playerInfo.historyActions.joinToString(separator = ", ")) }
     var betAmount by remember { mutableStateOf(playerInfo.betAmount) }
+    var lastBetAmount by remember { mutableStateOf(playerInfo.lastBetAmount) }
     var isRaiseSelected by remember { mutableStateOf(false) }
     var isCallSelected by remember { mutableStateOf(false) }
     var inOut by remember { mutableStateOf(playerInfo.inOut) }
@@ -200,23 +201,38 @@ fun PlayerInfoDialog(
                                 Button(
                                     onClick = {
                                         lastAction = "Call"
-                                        betAmount = highestBetAmount.toString() // Assigner le montant du Call
-                                        stack = (stack.toIntOrNull()?.minus(highestBetAmount) ?: 0).toString() // Déduit la mise du stack
-                                        historyActions += ", C$highestBetAmount" // Ajouter "C<montant>" à l'historique
-                                        onDismiss(playerInfo.copy(
-                                            stack = stack,
-                                            lastAction = lastAction,
-                                            betAmount = betAmount,
-                                            historyActions = historyActions.split(", ").map { it.trim() }
-                                        )) // Fermer le dialog immédiatement
+                                        if (highestBetAmount == bigBlindAmount && playerIndex==smallBlindPosition) {
+
+                                                    val callAmount = bigBlindAmount / 2
+                                                    betAmount = (lastBetAmount.toInt() + callAmount).toString()
+                                                    stack = (stack.toIntOrNull()?.minus(callAmount) ?: 0).toString()
+                                                    historyActions += ", C$betAmount"
+                                                    lastBetAmount=betAmount
+
+                                        }
+                                        else {
+                                            betAmount = highestBetAmount.toString()
+                                            stack = (stack.toIntOrNull()?.minus(highestBetAmount-lastBetAmount.toInt()) ?: 0).toString() // Déduit la mise du stack
+                                            historyActions += ", C$betAmount"
+                                            lastBetAmount=betAmount
+                                        }
+                                        onDismiss(
+                                            playerInfo.copy(
+                                                stack = stack,
+                                                lastAction = lastAction,
+                                                betAmount = betAmount,
+                                                lastBetAmount = lastBetAmount,
+                                                historyActions = historyActions.split(", ").map { it.trim() }
+                                            )
+                                        ) // Fermer le dialog immédiatement
                                     },
-                                    enabled = !isStackTooSmall,
+                                    enabled = !isStackTooSmall && !(playerIndex == bigBlindPosition && highestBetAmount == bigBlindAmount),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.primary.copy(alpha = if (isStackTooSmall) 0.4f else 1f)
                                     )
-                                ) {
+                                ){
                                     Text(
-                                        text = "Call ${minOf(stack.toIntOrNull() ?: 0, highestBetAmount)}",
+                                        text = "Call ${if (playerIndex == smallBlindPosition && highestBetAmount == bigBlindAmount) bigBlindAmount / 2 else (highestBetAmount-lastBetAmount.toInt())}",
                                         color = MaterialTheme.colorScheme.onPrimary
                                     )
                                 }
@@ -251,9 +267,9 @@ fun PlayerInfoDialog(
                                         lastAction = "All In"
                                         val allInAmount = stack.toIntOrNull() ?: 0
                                         if (allInAmount > 0) {
-                                            betAmount = allInAmount.toString() // Mettre tout le stack dans le betAmount
+                                            betAmount = (allInAmount+lastBetAmount.toInt()).toString() // Mettre tout le stack dans le betAmount
                                             stack = "0" // Le joueur n'a plus de stack après un All In
-                                            historyActions += ", Ai$allInAmount" // Ajouter "Ai<montant>" à l'historique
+                                            historyActions += ", Ai$betAmount" // Ajouter "Ai<montant>" à l'historique
                                         }
 
                                         // Créer l'objet PlayerInfo mis à jour et fermer le dialog
@@ -263,6 +279,7 @@ fun PlayerInfoDialog(
                                             lastAction = lastAction,
                                             actualMood = actualMood,
                                             betAmount = betAmount,
+                                            lastBetAmount = lastBetAmount,
                                             historyActions = historyActions.split(", ").map { it.trim() }
                                         )
                                         onDismiss(updatedPlayerInfo) // Fermer le dialog immédiatement
@@ -325,9 +342,10 @@ fun PlayerInfoDialog(
                                             val raiseAmount = betAmount.toIntOrNull() ?: 0
                                             if (!isIllegalRaise) {
                                                 // Mettre à jour les informations du joueur
-                                                stack = (stack.toIntOrNull()?.minus(raiseAmount) ?: 0).toString() // Déduit la mise du stack
-                                                historyActions += ", R$raiseAmount" // Ajouter "R<montant>" à l'historique
-
+                                                betAmount=(raiseAmount-lastBetAmount.toInt()).toString()
+                                                stack = (stack.toIntOrNull()?.minus(betAmount.toInt()) ?: 0).toString() // Déduit la mise du stack
+                                                historyActions += ", R$betAmount" // Ajouter "R<montant>" à l'historique
+                                                lastBetAmount=betAmount
                                                 // Créer l'objet PlayerInfo mis à jour et fermer le dialog
                                                 val updatedPlayerInfo = PlayerInfo(
                                                     inOut = inOut,
@@ -335,6 +353,7 @@ fun PlayerInfoDialog(
                                                     lastAction = "Raise",
                                                     actualMood = actualMood,
                                                     betAmount = raiseAmount.toString(),
+                                                    lastBetAmount = lastBetAmount,
                                                     historyActions = historyActions.split(", ").map { it.trim() }
                                                 )
                                                 onDismiss(updatedPlayerInfo) // Fermer le dialog immédiatement
@@ -380,7 +399,8 @@ data class PlayerInfo(
     var actualMood: String = "",
     var betAmount: String = "",
     var historyActions: List<String> = emptyList(),
-    var inOut: Boolean = false
+    var inOut: Boolean = false,
+    var lastBetAmount: String = ""
 ) {
     var inOutState by mutableStateOf(inOut)
 }

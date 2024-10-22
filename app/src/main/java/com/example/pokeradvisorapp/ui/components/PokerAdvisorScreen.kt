@@ -83,12 +83,12 @@ fun PokerAdvisorScreen() {
         put(1, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
         put(2, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
         put(3, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
-        put(4, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
-        put(5, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
-        put(6, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
-        put(7, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
-        put(8, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
-        put(9, PlayerInfo(stack = "1000", inOut = true, betAmount = 0.toString()))
+        put(4, PlayerInfo(stack = "1000", inOut = false, betAmount = 0.toString()))
+        put(5, PlayerInfo(stack = "1000", inOut = false, betAmount = 0.toString()))
+        put(6, PlayerInfo(stack = "1000", inOut = false, betAmount = 0.toString()))
+        put(7, PlayerInfo(stack = "1000", inOut = false, betAmount = 0.toString()))
+        put(8, PlayerInfo(stack = "1000", inOut = false, betAmount = 0.toString()))
+        put(9, PlayerInfo(stack = "1000", inOut = false, betAmount = 0.toString()))
         //(4..9).forEach { put(it, PlayerInfo(stack = "1000", inOut = false)) }
     } }
 
@@ -113,16 +113,19 @@ fun PokerAdvisorScreen() {
                 when (position) {
                     smallBlindPosition -> {
                         val smallBlindAmount = (bigBlind.toInt() / 2)
-                        player.betAmount = smallBlindAmount.toString() // Assignation de la petite blind
-                        player.stack = (player.stack.toIntOrNull()?.minus(smallBlindAmount) ?: 0).toString() // Déduit la petite blind du stack
+                        player.lastBetAmount = smallBlindAmount.toString() // Assignation de la petite blind
+                        player.betAmount=player.lastBetAmount
+                        player.stack = (1000.minus(smallBlindAmount) ?: 0).toString() // Déduit la petite blind du stack
                     }
                     bigBlindPosition -> {
                         val bigBlindAmount = bigBlind.toInt()
-                        player.betAmount = bigBlindAmount.toString() // Assignation de la grande blind
-                        player.stack = (player.stack.toIntOrNull()?.minus(bigBlindAmount) ?: 0).toString() // Déduit la grande blind du stack
+                        player.lastBetAmount = bigBlindAmount.toString() // Assignation de la grande blind
+                        player.betAmount=player.lastBetAmount
+                        player.stack = (1000.minus(bigBlindAmount) ?: 0).toString() // Déduit la grande blind du stack
                     }
                     else -> {
                         player.betAmount = "0" // Les autres joueurs ont un betAmount de 0 par défaut
+                        player.lastBetAmount="0"
                     }
                 }
             }
