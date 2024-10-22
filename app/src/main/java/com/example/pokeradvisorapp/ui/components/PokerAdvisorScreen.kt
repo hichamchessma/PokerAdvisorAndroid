@@ -93,7 +93,7 @@ fun PokerAdvisorScreen() {
     } }
 
     // Utilisez LaunchedEffect à l'intérieur de cette fonction @Composable
-    LaunchedEffect(playerInfo.values.map { it.inOut }, positionButton) {
+    LaunchedEffect(playerInfo.values.map { it.inOut }, positionButton,bigBlind) {
         val activePositions = playerInfo.filter { it.value.inOut }.keys.toList().sorted()
         val buttonPositionValue = positionButton.toIntOrNull()
         if (buttonPositionValue != null && activePositions.contains(buttonPositionValue)) {
@@ -110,10 +110,20 @@ fun PokerAdvisorScreen() {
             }
             // Mettre à jour le montant de mise des joueurs
             playerInfo.forEach { (position, player) ->
-                player.betAmount = when (position) {
-                    smallBlindPosition -> (bigBlind.toInt() / 2).toString() // Petite blind (la moitié de la grosse blind)
-                    bigBlindPosition -> bigBlind // Grande blind (valeur de la grosse blind)
-                    else -> "0" // Les autres joueurs ont un betAmount de 0 par défaut
+                when (position) {
+                    smallBlindPosition -> {
+                        val smallBlindAmount = (bigBlind.toInt() / 2)
+                        player.betAmount = smallBlindAmount.toString() // Assignation de la petite blind
+                        player.stack = (player.stack.toIntOrNull()?.minus(smallBlindAmount) ?: 0).toString() // Déduit la petite blind du stack
+                    }
+                    bigBlindPosition -> {
+                        val bigBlindAmount = bigBlind.toInt()
+                        player.betAmount = bigBlindAmount.toString() // Assignation de la grande blind
+                        player.stack = (player.stack.toIntOrNull()?.minus(bigBlindAmount) ?: 0).toString() // Déduit la grande blind du stack
+                    }
+                    else -> {
+                        player.betAmount = "0" // Les autres joueurs ont un betAmount de 0 par défaut
+                    }
                 }
             }
         }
@@ -261,14 +271,13 @@ fun PokerAdvisorScreen() {
             expanded = expandedPosition,
             onDismissRequest = { expandedPosition = false }
         ) {
-            positionOptions.forEach { option ->
+            // Filtrer uniquement les joueurs "in" (inOut = true)
+            playerInfo.filter { it.value.inOut }.forEach { (position, _) ->
                 DropdownMenuItem(
-                    text = { Text(text = option.toString()) },
+                    text = { Text(text = position.toString()) },
                     onClick = {
-                        positionPlayer = option.toString()
+                        positionPlayer = position.toString()
                         expandedPosition = false
-                        playerInfo[option]?.inOut = true
-                        playerInfo[option]?.inOutState = true
                     }
                 )
             }
@@ -385,7 +394,10 @@ fun PokerAdvisorScreen() {
                 },
                 focusOnStack = true,
                 allPlayerInfo = playerInfo,
-                positionPlayer = positionPlayer
+                positionPlayer = positionPlayer,
+                smallBlindPosition = smallBlindPosition,
+                bigBlindPosition = bigBlindPosition,
+                bigBlindAmount = bigBlind.toInt()
             )
         }
     }

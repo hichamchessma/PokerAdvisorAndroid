@@ -2,7 +2,6 @@
 package com.example.pokeradvisorapp.ui.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,11 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -33,6 +31,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.pokeradvisorapp.R
 
@@ -43,25 +42,32 @@ fun PlayerInfoDialog(
     onDismiss: (PlayerInfo?) -> Unit,
     focusOnStack: Boolean = false,
     allPlayerInfo: Map<Int, PlayerInfo>,
-    positionPlayer: String
+    positionPlayer: String,
+    smallBlindPosition: Int?, // Ajoutez cette ligne
+    bigBlindPosition: Int?, // Ajoutez cette ligne
+    bigBlindAmount: Int
 ) {
     var stack by remember { mutableStateOf(playerInfo.stack) }
     var lastAction by remember { mutableStateOf(playerInfo.lastAction) } // Fold par défaut
     var actualMood by remember { mutableStateOf(playerInfo.actualMood) }
     var historyActions by remember { mutableStateOf(playerInfo.historyActions.joinToString(separator = ", ")) }
-    var expanded by remember { mutableStateOf(false) }
     var betAmount by remember { mutableStateOf(playerInfo.betAmount) }
     var isRaiseSelected by remember { mutableStateOf(false) }
     var isCallSelected by remember { mutableStateOf(false) }
     var inOut by remember { mutableStateOf(playerInfo.inOut) }
+
+
+
     val highestBetAmount = allPlayerInfo.values
         .filter { it.inOut } // Considérer seulement les joueurs qui sont in
         .maxOfOrNull { it.betAmount.toIntOrNull() ?: 0 } ?: 0
     val actions = listOf("Check", "Call ($highestBetAmount)", "Raise", "All in", "Fold")
 
+
     isRaiseSelected = playerInfo.lastAction == "Raise"
     isCallSelected = playerInfo.lastAction == "Call"
     val focusRequester = remember { FocusRequester() }
+
 
     AlertDialog(
         onDismissRequest = { onDismiss(null) },
@@ -112,6 +118,9 @@ fun PlayerInfoDialog(
                             value = stack,
                             onValueChange = { stack = it },
                             label = { Text("Stack") },
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                keyboardType = KeyboardType.Number // Utilise un clavier numérique
+                            ),
                             modifier = Modifier
                                 .width(100.dp)
                                 .focusRequester(focusRequester)
@@ -136,6 +145,9 @@ fun PlayerInfoDialog(
                             .padding(vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
+
+                        val isStackTooSmall = (stack.toIntOrNull() ?: 0) <= highestBetAmount
+
                         Column(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -155,42 +167,31 @@ fun PlayerInfoDialog(
                                         lastAction = "Fold"
                                         inOut = false // Le joueur n'est plus "in"
                                         historyActions += ", F" // Ajouter "F" à l'historique
-
-                                        // Créer l'objet PlayerInfo mis à jour et fermer le dialog
-                                        val updatedPlayerInfo = PlayerInfo(
-                                            inOut = inOut,
-                                            stack = stack,
+                                        onDismiss(playerInfo.copy(
+                                            inOut = false,
                                             lastAction = lastAction,
-                                            actualMood = actualMood,
-                                            betAmount = "",
                                             historyActions = historyActions.split(", ").map { it.trim() }
-                                        )
-                                        onDismiss(updatedPlayerInfo) // Fermer le dialog immédiatement
+                                        )) // Fermer le dialog immédiatement
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                                 ) {
                                     Text(text = "Fold", color = MaterialTheme.colorScheme.onPrimary)
                                 }
 
-
                                 // Bouton Check
                                 Button(
                                     onClick = {
                                         lastAction = "Check"
                                         historyActions += ", Ch" // Ajouter "Ch" à l'historique
-
-                                        // Créer l'objet PlayerInfo mis à jour et fermer le dialog
-                                        val updatedPlayerInfo = PlayerInfo(
-                                            inOut = inOut,
-                                            stack = stack,
+                                        onDismiss(playerInfo.copy(
                                             lastAction = lastAction,
-                                            actualMood = actualMood,
-                                            betAmount = "",
                                             historyActions = historyActions.split(", ").map { it.trim() }
-                                        )
-                                        onDismiss(updatedPlayerInfo) // Fermer le dialog immédiatement
+                                        )) // Fermer le dialog immédiatement
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                                    enabled = !isStackTooSmall,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = if (isStackTooSmall) 0.4f else 1f)
+                                    )
                                 ) {
                                     Text(text = "Check", color = MaterialTheme.colorScheme.onPrimary)
                                 }
@@ -202,22 +203,20 @@ fun PlayerInfoDialog(
                                         betAmount = highestBetAmount.toString() // Assigner le montant du Call
                                         stack = (stack.toIntOrNull()?.minus(highestBetAmount) ?: 0).toString() // Déduit la mise du stack
                                         historyActions += ", C$highestBetAmount" // Ajouter "C<montant>" à l'historique
-
-                                        // Créer l'objet PlayerInfo mis à jour et fermer le dialog
-                                        val updatedPlayerInfo = PlayerInfo(
-                                            inOut = inOut,
+                                        onDismiss(playerInfo.copy(
                                             stack = stack,
                                             lastAction = lastAction,
-                                            actualMood = actualMood,
                                             betAmount = betAmount,
                                             historyActions = historyActions.split(", ").map { it.trim() }
-                                        )
-                                        onDismiss(updatedPlayerInfo) // Fermer le dialog immédiatement
+                                        )) // Fermer le dialog immédiatement
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                                    enabled = !isStackTooSmall,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = if (isStackTooSmall) 0.4f else 1f)
+                                    )
                                 ) {
                                     Text(
-                                        text = "Call $highestBetAmount",
+                                        text = "Call ${minOf(stack.toIntOrNull() ?: 0, highestBetAmount)}",
                                         color = MaterialTheme.colorScheme.onPrimary
                                     )
                                 }
@@ -233,11 +232,12 @@ fun PlayerInfoDialog(
                                 Button(
                                     onClick = {
                                         lastAction = "Raise"
-                                        isRaiseSelected =
-                                            true // Pour ouvrir le champ de saisie de la mise (TextField)
+                                        isRaiseSelected =true
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                                ) {
+                                    enabled = !isStackTooSmall,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = if (isStackTooSmall) 0.4f else 1f)
+                                    )                                ) {
                                     Text(
                                         text = "Raise",
                                         color = MaterialTheme.colorScheme.onPrimary
@@ -247,7 +247,25 @@ fun PlayerInfoDialog(
                                 // Bouton All In
                                 Button(
                                     onClick = {
-                                        // Logique de All In à implémenter plus tard
+                                        // Mettre à jour les informations du joueur pour All In
+                                        lastAction = "All In"
+                                        val allInAmount = stack.toIntOrNull() ?: 0
+                                        if (allInAmount > 0) {
+                                            betAmount = allInAmount.toString() // Mettre tout le stack dans le betAmount
+                                            stack = "0" // Le joueur n'a plus de stack après un All In
+                                            historyActions += ", Ai$allInAmount" // Ajouter "Ai<montant>" à l'historique
+                                        }
+
+                                        // Créer l'objet PlayerInfo mis à jour et fermer le dialog
+                                        val updatedPlayerInfo = PlayerInfo(
+                                            inOut = inOut,
+                                            stack = stack,
+                                            lastAction = lastAction,
+                                            actualMood = actualMood,
+                                            betAmount = betAmount,
+                                            historyActions = historyActions.split(", ").map { it.trim() }
+                                        )
+                                        onDismiss(updatedPlayerInfo) // Fermer le dialog immédiatement
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                                 ) {
@@ -257,6 +275,79 @@ fun PlayerInfoDialog(
                                     )
                                 }
                             }
+
+                            var isIllegalRaise by remember { mutableStateOf(false) }
+
+                            if (isRaiseSelected) {
+
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    TextField(
+                                        value = betAmount,
+                                        onValueChange = {
+                                            betAmount = it
+                                            val raiseAmount = it.toIntOrNull() ?: 0
+                                            val currentStack = stack.toIntOrNull() ?: 0
+                                            isIllegalRaise = (raiseAmount < 2 * highestBetAmount && raiseAmount != currentStack) || raiseAmount >= currentStack
+                                        },
+                                        label = { Text("Montant du Raise") },
+                                        keyboardOptions = KeyboardOptions.Default.copy(
+                                            keyboardType = KeyboardType.Number
+                                        ),
+                                        modifier = Modifier.focusRequester(focusRequester)
+                                    )
+
+                                    LaunchedEffect(Unit) {
+                                        focusRequester.requestFocus() // Focaliser automatiquement sur le champ de saisie
+                                    }
+
+                                    // Message d'erreur pour Raise invalide
+                                    if (isIllegalRaise) {
+                                        Text(
+                                            text = "raise invalide !",
+                                            color = androidx.compose.ui.graphics.Color.Red,
+                                            modifier = Modifier.padding(top = 4.dp),
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                            )
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    // Bouton de confirmation pour Raise
+                                    Button(
+                                        onClick = {
+                                            val raiseAmount = betAmount.toIntOrNull() ?: 0
+                                            if (!isIllegalRaise) {
+                                                // Mettre à jour les informations du joueur
+                                                stack = (stack.toIntOrNull()?.minus(raiseAmount) ?: 0).toString() // Déduit la mise du stack
+                                                historyActions += ", R$raiseAmount" // Ajouter "R<montant>" à l'historique
+
+                                                // Créer l'objet PlayerInfo mis à jour et fermer le dialog
+                                                val updatedPlayerInfo = PlayerInfo(
+                                                    inOut = inOut,
+                                                    stack = stack,
+                                                    lastAction = "Raise",
+                                                    actualMood = actualMood,
+                                                    betAmount = raiseAmount.toString(),
+                                                    historyActions = historyActions.split(", ").map { it.trim() }
+                                                )
+                                                onDismiss(updatedPlayerInfo) // Fermer le dialog immédiatement
+                                            }
+                                        },
+                                        enabled = !isIllegalRaise, // Désactiver si le raise est invalide
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                                    ) {
+                                        Text(text = "Confirmer Raise", color = MaterialTheme.colorScheme.onPrimary)
+                                    }
+                                }
+                            }
+
                         }
 
                     }
