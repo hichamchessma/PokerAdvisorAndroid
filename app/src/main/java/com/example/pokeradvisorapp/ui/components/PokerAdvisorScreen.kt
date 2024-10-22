@@ -383,7 +383,9 @@ fun PokerAdvisorScreen() {
                     }
                     currentPlayerIndex = null
                 },
-                focusOnStack = true
+                focusOnStack = true,
+                allPlayerInfo = playerInfo,
+                positionPlayer = positionPlayer
             )
         }
     }

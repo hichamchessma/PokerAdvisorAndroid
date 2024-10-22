@@ -3,12 +3,14 @@ package com.example.pokeradvisorapp.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -63,20 +65,12 @@ fun CardSelector(
                 .clickable { onExpandedCard1Changed(true) }
                 .padding(4.dp)
         )
-        DropdownMenu(
+        CardDropdownMenu(
             expanded = expandedCard1,
-            onDismissRequest = { onExpandedCard1Changed(false) }
-        ) {
-            cards.forEach { card ->
-                DropdownMenuItem(
-                    text = { Text(text = card) },
-                    onClick = {
-                        onCard1Selected(card)
-                        onExpandedCard1Changed(false)
-                    }
-                )
-            }
-        }
+            onExpandedChanged = onExpandedCard1Changed,
+            cards = cards,
+            onCardSelected = onCard1Selected
+        )
 
 
 
@@ -88,20 +82,12 @@ fun CardSelector(
                 .clickable { onExpandedCard2Changed(true) }
                 .padding(4.dp)
         )
-        DropdownMenu(
+        CardDropdownMenu(
             expanded = expandedCard2,
-            onDismissRequest = { onExpandedCard2Changed(false) }
-        ) {
-            cards.forEach { card ->
-                DropdownMenuItem(
-                    text = { Text(text = card) },
-                    onClick = {
-                        onCard2Selected(card)
-                        onExpandedCard2Changed(false)
-                    }
-                )
-            }
-        }
+            onExpandedChanged = onExpandedCard2Changed,
+            cards = cards,
+            onCardSelected = onCard2Selected
+        )
     }
     Row(
         modifier = Modifier
@@ -117,20 +103,12 @@ fun CardSelector(
                 .clickable { onExpandedFlop1Changed(true) }
                 .padding(4.dp)
         )
-        DropdownMenu(
+        CardDropdownMenu(
             expanded = expandedFlop1,
-            onDismissRequest = { onExpandedFlop1Changed(false) }
-        ) {
-            cards.forEach { card ->
-                DropdownMenuItem(
-                    text = { Text(text = card) },
-                    onClick = {
-                        onFlop1Selected(card)
-                        onExpandedFlop1Changed(false)
-                    }
-                )
-            }
-        }
+            onExpandedChanged = onExpandedFlop1Changed,
+            cards = cards,
+            onCardSelected = onFlop1Selected
+        )
 
         Text(
             text = if (flop2.isEmpty()) "Flop2" else "Flop2 : $flop2",
@@ -139,20 +117,12 @@ fun CardSelector(
                 .clickable { onExpandedFlop2Changed(true) }
                 .padding(4.dp)
         )
-        DropdownMenu(
+        CardDropdownMenu(
             expanded = expandedFlop2,
-            onDismissRequest = { onExpandedFlop2Changed(false) }
-        ) {
-            cards.forEach { card ->
-                DropdownMenuItem(
-                    text = { Text(text = card) },
-                    onClick = {
-                        onFlop2Selected(card)
-                        onExpandedFlop2Changed(false)
-                    }
-                )
-            }
-        }
+            onExpandedChanged = onExpandedFlop2Changed,
+            cards = cards,
+            onCardSelected = onFlop2Selected
+        )
 
         Text(
             text = if (flop3.isEmpty()) "Flop3" else "Flop3 : $flop3",
@@ -161,20 +131,12 @@ fun CardSelector(
                 .clickable { onExpandedFlop3Changed(true) }
                 .padding(4.dp)
         )
-        DropdownMenu(
+        CardDropdownMenu(
             expanded = expandedFlop3,
-            onDismissRequest = { onExpandedFlop3Changed(false) }
-        ) {
-            cards.forEach { card ->
-                DropdownMenuItem(
-                    text = { Text(text = card) },
-                    onClick = {
-                        onFlop3Selected(card)
-                        onExpandedFlop3Changed(false)
-                    }
-                )
-            }
-        }
+            onExpandedChanged = onExpandedFlop3Changed,
+            cards = cards,
+            onCardSelected = onFlop3Selected
+        )
 
         Text(
             text = if (turn.isEmpty()) "Turn" else "Turn : $turn",
@@ -183,20 +145,12 @@ fun CardSelector(
                 .clickable { onExpandedTurnChanged(true) }
                 .padding(4.dp)
         )
-        DropdownMenu(
+        CardDropdownMenu(
             expanded = expandedTurn,
-            onDismissRequest = { onExpandedTurnChanged(false) }
-        ) {
-            cards.forEach { card ->
-                DropdownMenuItem(
-                    text = { Text(text = card) },
-                    onClick = {
-                        onTurnSelected(card)
-                        onExpandedTurnChanged(false)
-                    }
-                )
-            }
-        }
+            onExpandedChanged = onExpandedTurnChanged,
+            cards = cards,
+            onCardSelected = onTurnSelected
+        )
 
         Text(
             text = if (river.isEmpty()) "River" else "River : $river",
@@ -205,21 +159,56 @@ fun CardSelector(
                 .clickable { onExpandedRiverChanged(true)  }
                 .padding(4.dp)
         )
-        DropdownMenu(
+        CardDropdownMenu(
             expanded = expandedRiver,
-            onDismissRequest = { onExpandedRiverChanged(false) }
+            onExpandedChanged = onExpandedRiverChanged,
+            cards = cards,
+            onCardSelected = onRiverSelected
+        )
+    }
+
+}
+
+
+@Composable
+fun CardDropdownMenu(
+    expanded: Boolean,
+    onExpandedChanged: (Boolean) -> Unit,
+    cards: List<String>,
+    onCardSelected: (String) -> Unit
+) {
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { onExpandedChanged(false) }
+    ) {
+        // Grouper les cartes par couleur
+        val groupedCards = listOf(
+            cards.filter { it.endsWith("♠") }, // Piques
+            cards.filter { it.endsWith("♥") }, // Cœurs
+            cards.filter { it.endsWith("♦") }, // Carreaux
+            cards.filter { it.endsWith("♣") }  // Trèfles
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            cards.forEach { card ->
-                DropdownMenuItem(
-                    text = { Text(text = card) },
-                    onClick = {
-                        onRiverSelected(card)
-                        onExpandedRiverChanged(false)
+            groupedCards.forEach { colorGroup ->
+                Column {
+                    colorGroup.forEach { card ->
+                        Text(
+                            text = card,
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .clickable {
+                                    onCardSelected(card)
+                                    onExpandedChanged(false)
+                                }
+                        )
                     }
-                )
+                }
             }
         }
     }
-
 }
 

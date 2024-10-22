@@ -10,7 +10,7 @@ import retrofit2.http.POST
 interface OpenAiApiService {
     @Headers(
         "Content-Type: application/json",
-       )
+    )
     @POST("v1/chat/completions")
     fun getChatCompletion(@Body request: OpenAiRequest): Call<OpenAiResponse>
 }

@@ -11,8 +11,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.example.pokeradvisorapp.RetrofitInstance
 import com.example.pokeradvisorapp.ui.theme.Message
 import com.example.pokeradvisorapp.ui.theme.OpenAiRequest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun AdviceButton(
@@ -85,7 +90,7 @@ fun AdviceButton(
                 )
 
                 // Utilisation des coroutines pour envoyer la requête en arrière-plan
-               /* CoroutineScope(Dispatchers.IO).launch {
+                CoroutineScope(Dispatchers.IO).launch {
                     try {
                         val response = RetrofitInstance.openAiApiService.getChatCompletion(request).execute()
                         if (response.isSuccessful) {
@@ -106,7 +111,7 @@ fun AdviceButton(
                             Toast.makeText(context, "Échec de la requête : ${e.message}", Toast.LENGTH_LONG).show()
                         }
                     }
-                }*/
+                }
             }
         },
         modifier = Modifier.fillMaxWidth(),

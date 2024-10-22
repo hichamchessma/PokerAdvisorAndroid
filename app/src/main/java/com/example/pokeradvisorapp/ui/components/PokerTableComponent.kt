@@ -160,7 +160,9 @@ fun PokerTableComponent(
         betPositions.forEachIndexed { index, betModifier ->
             val player = playerInfo[index + 1]
             if (player != null && player.inOut) {
-                Text(
+                val betAmount = player.betAmount.toIntOrNull() ?: 0
+                if (betAmount > 0 || index + 1 == smallBlindPosition || index + 1 == bigBlindPosition) {
+                    Text(
                     text = when (index + 1) {
                         smallBlindPosition -> " $smallBlindAmount"
                         bigBlindPosition -> " $bigBlindAmount"
@@ -175,6 +177,7 @@ fun PokerTableComponent(
                         .background(Color.Black.copy(alpha = 0.0f), shape = RoundedCornerShape(50))
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 )
+            }
             }
         }
     }
