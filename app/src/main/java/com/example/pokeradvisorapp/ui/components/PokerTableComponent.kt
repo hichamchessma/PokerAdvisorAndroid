@@ -15,12 +15,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.pokeradvisorapp.R
 
 @Composable
@@ -32,8 +34,8 @@ fun PokerTableComponent(
     buttonPosition: Int?,
     smallBlindPosition: Int?,
     bigBlindPosition: Int?,
-    smallBlindAmount: String,
-    bigBlindAmount: String,
+    pot: Int
+
 ) {
     Box(
         modifier = Modifier
@@ -44,6 +46,19 @@ fun PokerTableComponent(
             painter = painterResource(id = R.drawable.table_poker),
             contentDescription = "Table de poker",
             modifier = Modifier.fillMaxSize()
+        )
+
+        Text(
+            text = "Pot: $pot",
+            color = Color.White,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .background(Color.Black.copy(alpha = 0.7f), shape = RoundedCornerShape(8.dp))
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            style = androidx.compose.ui.text.TextStyle(
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                fontSize = 18.sp // Correction ici
+            )
         )
 
         val playerPositions = listOf(

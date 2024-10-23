@@ -69,6 +69,7 @@ fun PokerAdvisorScreen() {
     var expandedPositions by remember { mutableStateOf(false) }
     var smallBlindPosition by remember { mutableStateOf<Int?>(null) }
     var bigBlindPosition by remember { mutableStateOf<Int?>(null) }
+    var pot by remember { mutableStateOf(0) }
 
     val cards = listOf("A♠", "A♥", "A♦", "A♣", "K♠", "K♥", "K♦", "K♣", "Q♠", "Q♥", "Q♦", "Q♣", "J♠", "J♥", "J♦", "J♣", "10♠", "10♥", "10♦", "10♣", "9♠", "9♥", "9♦", "9♣", "8♠", "8♥", "8♦", "8♣", "7♠", "7♥", "7♦", "7♣", "6♠", "6♥", "6♦", "6♣", "5♠", "5♥", "5♦", "5♣", "4♠", "4♥", "4♦", "4♣", "3♠", "3♥", "3♦", "3♣", "2♠", "2♥", "2♦", "2♣")
 
@@ -96,6 +97,7 @@ fun PokerAdvisorScreen() {
     LaunchedEffect(playerInfo.values.map { it.inOut }, positionButton,bigBlind) {
         val activePositions = playerInfo.filter { it.value.inOut }.keys.toList().sorted()
         val buttonPositionValue = positionButton.toIntOrNull()
+        pot = bigBlind.toInt()*3/2
         if (buttonPositionValue != null && activePositions.contains(buttonPositionValue)) {
             val buttonIndex = activePositions.indexOf(buttonPositionValue)
 
@@ -161,8 +163,7 @@ fun PokerAdvisorScreen() {
             buttonPosition = positionButton.toIntOrNull(),
             smallBlindPosition = smallBlindPosition,
             bigBlindPosition = bigBlindPosition,
-            smallBlindAmount = (bigBlind.toInt() / 2).toString(),
-            bigBlindAmount = bigBlind,
+            pot = pot
         )
 
 
@@ -229,6 +230,26 @@ fun PokerAdvisorScreen() {
                         tempPlayerInfo.forEach { (position, tempInfo) ->
                             playerInfo[position] = tempInfo.copy()
                         }
+
+                        // Assurez-vous de définir les positions small blind et big blind
+                        smallBlindPosition?.let { sbPosition ->
+                            playerInfo[sbPosition]?.apply {
+                                stack = (stack.toInt() - (bigBlind.toInt() / 2)).toString() // Déduire la valeur de la small blind
+                                lastBetAmount = (bigBlind.toInt() / 2).toString() // Assigner la valeur de la small blind
+                                betAmount = lastBetAmount
+                                pot += (bigBlind.toInt() / 2)
+                            }
+                        }
+
+                        bigBlindPosition?.let { bbPosition ->
+                            playerInfo[bbPosition]?.apply {
+                                stack = (stack.toInt() - bigBlind.toInt()).toString() // Déduire la valeur de la big blind
+                                lastBetAmount = bigBlind // Assigner la valeur de la big blind
+                                betAmount = lastBetAmount
+                                pot += bigBlind.toInt()
+                            }
+                        }
+
                         expandedPositions = false
                     },
 
@@ -244,6 +265,12 @@ fun PokerAdvisorScreen() {
                         playerInfo.forEach { (position, player) ->
                             player.inOut = false
                             player.inOutState = false
+                            player.stack = "1000" // Reset stack to initial value
+                            player.lastAction = "" // Reset last action
+                            player.actualMood = "" // Reset mood
+                            player.betAmount = "0" // Reset bet amount
+                            player.historyActions = emptyList() // Clear action history
+                            player.lastBetAmount = "0" // Reset last bet amount
                         }
                         selectedPlayersCount = 0
                         expandedPositions = false
@@ -400,7 +427,8 @@ fun PokerAdvisorScreen() {
                 positionPlayer = positionPlayer,
                 smallBlindPosition = smallBlindPosition,
                 bigBlindPosition = bigBlindPosition,
-                bigBlindAmount = bigBlind.toInt()
+                bigBlindAmount = bigBlind.toInt(),
+                updatePot = { amount -> pot += amount }
             )
         }
     }

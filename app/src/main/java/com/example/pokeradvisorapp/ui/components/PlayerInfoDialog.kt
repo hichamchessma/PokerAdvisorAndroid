@@ -45,7 +45,8 @@ fun PlayerInfoDialog(
     positionPlayer: String,
     smallBlindPosition: Int?, // Ajoutez cette ligne
     bigBlindPosition: Int?, // Ajoutez cette ligne
-    bigBlindAmount: Int
+    bigBlindAmount: Int,
+    updatePot: (Int) -> Unit
 ) {
     var stack by remember { mutableStateOf(playerInfo.stack) }
     var lastAction by remember { mutableStateOf(playerInfo.lastAction) } // Fold par défaut
@@ -56,6 +57,7 @@ fun PlayerInfoDialog(
     var isRaiseSelected by remember { mutableStateOf(false) }
     var isCallSelected by remember { mutableStateOf(false) }
     var inOut by remember { mutableStateOf(playerInfo.inOut) }
+
 
 
 
@@ -206,15 +208,18 @@ fun PlayerInfoDialog(
                                                     val callAmount = bigBlindAmount / 2
                                                     betAmount = (lastBetAmount.toInt() + callAmount).toString()
                                                     stack = (stack.toIntOrNull()?.minus(callAmount) ?: 0).toString()
+                                                    updatePot(callAmount)
                                                     historyActions += ", C$betAmount"
                                                     lastBetAmount=betAmount
 
                                         }
                                         else {
+                                            val callAmount = highestBetAmount - lastBetAmount.toInt()
                                             betAmount = highestBetAmount.toString()
-                                            stack = (stack.toIntOrNull()?.minus(highestBetAmount-lastBetAmount.toInt()) ?: 0).toString() // Déduit la mise du stack
+                                            stack = (stack.toIntOrNull()?.minus(callAmount) ?: 0).toString()
+                                            updatePot(callAmount) // Ajouter la mise au pot via le callback
                                             historyActions += ", C$betAmount"
-                                            lastBetAmount=betAmount
+                                            lastBetAmount = betAmount
                                         }
                                         onDismiss(
                                             playerInfo.copy(
@@ -263,16 +268,17 @@ fun PlayerInfoDialog(
                                 // Bouton All In
                                 Button(
                                     onClick = {
-                                        // Mettre à jour les informations du joueur pour All In
+
                                         lastAction = "All In"
                                         val allInAmount = stack.toIntOrNull() ?: 0
                                         if (allInAmount > 0) {
-                                            betAmount = (allInAmount+lastBetAmount.toInt()).toString() // Mettre tout le stack dans le betAmount
-                                            stack = "0" // Le joueur n'a plus de stack après un All In
-                                            historyActions += ", Ai$betAmount" // Ajouter "Ai<montant>" à l'historique
+                                            betAmount = (allInAmount+lastBetAmount.toInt()).toString()
+                                            stack = "0"
+                                            updatePot(allInAmount)
+                                            historyActions += ", Ai$betAmount"
                                         }
 
-                                        // Créer l'objet PlayerInfo mis à jour et fermer le dialog
+
                                         val updatedPlayerInfo = PlayerInfo(
                                             inOut = inOut,
                                             stack = stack,
@@ -282,7 +288,7 @@ fun PlayerInfoDialog(
                                             lastBetAmount = lastBetAmount,
                                             historyActions = historyActions.split(", ").map { it.trim() }
                                         )
-                                        onDismiss(updatedPlayerInfo) // Fermer le dialog immédiatement
+                                        onDismiss(updatedPlayerInfo)
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                                 ) {
@@ -343,9 +349,11 @@ fun PlayerInfoDialog(
                                             if (!isIllegalRaise) {
                                                 // Mettre à jour les informations du joueur
                                                 betAmount=(raiseAmount-lastBetAmount.toInt()).toString()
-                                                stack = (stack.toIntOrNull()?.minus(betAmount.toInt()) ?: 0).toString() // Déduit la mise du stack
-                                                historyActions += ", R$betAmount" // Ajouter "R<montant>" à l'historique
+                                                stack = (stack.toIntOrNull()?.minus(betAmount.toInt()) ?: 0).toString()
+                                                updatePot(raiseAmount)
+                                                historyActions += ", R$betAmount"
                                                 lastBetAmount=betAmount
+
                                                 // Créer l'objet PlayerInfo mis à jour et fermer le dialog
                                                 val updatedPlayerInfo = PlayerInfo(
                                                     inOut = inOut,
