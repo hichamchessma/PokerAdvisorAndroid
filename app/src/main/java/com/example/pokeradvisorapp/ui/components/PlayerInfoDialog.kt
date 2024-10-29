@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +35,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.pokeradvisorapp.R
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun PlayerInfoDialog(
@@ -70,7 +73,6 @@ fun PlayerInfoDialog(
     isRaiseSelected = playerInfo.lastAction == "Raise"
     isCallSelected = playerInfo.lastAction == "Call"
     val focusRequester = remember { FocusRequester() }
-
 
     AlertDialog(
         onDismissRequest = { onDismiss(null) },
@@ -158,23 +160,31 @@ fun PlayerInfoDialog(
                                 .fillMaxWidth()
                                 .padding(8.dp)
                         ) {
+
                             // Première ligne : Fold, Check, Call
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
+
                                 // Bouton Fold
                                 Button(
                                     onClick = {
                                         lastAction = "Fold"
                                         inOut = false // Le joueur n'est plus "in"
                                         historyActions += ", F" // Ajouter "F" à l'historique
-                                        onDismiss(playerInfo.copy(
+
+                                        val updatedPlayerInfo = playerInfo.copy(
                                             inOut = false,
                                             lastAction = lastAction,
                                             historyActions = historyActions.split(", ").map { it.trim() }
-                                        )) // Fermer le dialog immédiatement
+                                        )
+                                        onDismiss(updatedPlayerInfo) // Fermer le dialog immédiatement
+
+
+
+
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                                 ) {
@@ -190,6 +200,8 @@ fun PlayerInfoDialog(
                                             lastAction = lastAction,
                                             historyActions = historyActions.split(", ").map { it.trim() }
                                         )) // Fermer le dialog immédiatement
+
+
                                     },
                                     enabled = !isStackTooSmall,
                                     colors = ButtonDefaults.buttonColors(
@@ -229,7 +241,8 @@ fun PlayerInfoDialog(
                                                 lastBetAmount = lastBetAmount,
                                                 historyActions = historyActions.split(", ").map { it.trim() }
                                             )
-                                        ) // Fermer le dialog immédiatement
+                                        )
+
                                     },
                                     enabled = !isStackTooSmall && !(playerIndex == bigBlindPosition && highestBetAmount == bigBlindAmount),
                                     colors = ButtonDefaults.buttonColors(
@@ -289,6 +302,7 @@ fun PlayerInfoDialog(
                                             historyActions = historyActions.split(", ").map { it.trim() }
                                         )
                                         onDismiss(updatedPlayerInfo)
+
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                                 ) {
@@ -401,6 +415,8 @@ fun PlayerInfoDialog(
     )
 }
 
+
+
 data class PlayerInfo(
     var stack: String = "",
     var lastAction: String = "",
@@ -408,7 +424,8 @@ data class PlayerInfo(
     var betAmount: String = "",
     var historyActions: List<String> = emptyList(),
     var inOut: Boolean = false,
-    var lastBetAmount: String = ""
+    var lastBetAmount: String = "",
+    var isCurrentTurn: Boolean = false // Nouveau pour indiquer si c'est le tour du joueur
 ) {
     var inOutState by mutableStateOf(inOut)
 }

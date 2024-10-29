@@ -34,7 +34,8 @@ fun PokerTableComponent(
     buttonPosition: Int?,
     smallBlindPosition: Int?,
     bigBlindPosition: Int?,
-    pot: Int
+    pot: Int,
+    talkingPlayer:Int
 
 ) {
     Box(
@@ -100,7 +101,13 @@ fun PokerTableComponent(
         playerPositions.forEachIndexed { index, positionModifier ->
             val player = playerInfo[index+1]
             if (player != null && player.inOut) {
-                Box(modifier = positionModifier.clickable { onPlayerClick(index + 1) }) {
+
+                val backgroundColor = if (index + 1 == talkingPlayer) Color.Yellow else Color.Transparent
+
+                Box(modifier = positionModifier.clickable { onPlayerClick(index + 1) }
+
+                    .background(backgroundColor)
+                ) {
 
                     val playerIcon = if (myPositionIndex == index + 1) {
                         R.drawable.poker_player_me
