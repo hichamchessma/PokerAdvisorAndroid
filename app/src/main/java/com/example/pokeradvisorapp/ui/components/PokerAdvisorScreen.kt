@@ -74,7 +74,12 @@ fun PokerAdvisorScreen() {
     var pot by remember { mutableStateOf(0) }
     var talkingPlayer by remember { mutableStateOf(1) }
 
-    val cards = listOf("A♠", "A♥", "A♦", "A♣", "K♠", "K♥", "K♦", "K♣", "Q♠", "Q♥", "Q♦", "Q♣", "J♠", "J♥", "J♦", "J♣", "10♠", "10♥", "10♦", "10♣", "9♠", "9♥", "9♦", "9♣", "8♠", "8♥", "8♦", "8♣", "7♠", "7♥", "7♦", "7♣", "6♠", "6♥", "6♦", "6♣", "5♠", "5♥", "5♦", "5♣", "4♠", "4♥", "4♦", "4♣", "3♠", "3♥", "3♦", "3♣", "2♠", "2♥", "2♦", "2♣")
+    val cards = listOf("A♠", "A♥", "A♦", "A♣", "K♠", "K♥", "K♦", "K♣"
+        , "Q♠", "Q♥", "Q♦", "Q♣", "J♠", "J♥", "J♦", "J♣", "10♠", "10♥"
+        , "10♦", "10♣", "9♠", "9♥", "9♦", "9♣", "8♠", "8♥", "8♦", "8♣"
+        , "7♠", "7♥", "7♦", "7♣", "6♠", "6♥", "6♦", "6♣", "5♠", "5♥"
+        , "5♦", "5♣", "4♠", "4♥", "4♦", "4♣", "3♠", "3♥", "3♦", "3♣"
+        , "2♠", "2♥", "2♦", "2♣")
 
     val modes = listOf("Agressif", "Passif", "Adaptatif")
     val coroutineScope = rememberCoroutineScope()
@@ -136,6 +141,15 @@ fun PokerAdvisorScreen() {
                 }
             }
         }
+
+        // Mise à jour du `talkingPlayer`
+        if (activePositions.isNotEmpty()) {
+            // Si des joueurs sont actifs, initialiser `talkingPlayer` avec le premier joueur "in"
+            talkingPlayer = activePositions.first()
+        } else {
+            // Si aucun joueur n'est actif, réinitialiser `talkingPlayer` à une valeur par défaut
+            talkingPlayer = 1
+        }
     }
 
 
@@ -145,6 +159,8 @@ fun PokerAdvisorScreen() {
 
     // State for tracking my actions
     val myHistory = remember { mutableStateOf(listOf<String>()) }
+
+
     LaunchedEffect(Unit) {
         expandedPositions = true
         tempPlayerInfo.clear()
@@ -420,6 +436,16 @@ fun PokerAdvisorScreen() {
             }
         }
         // Player Info Dialog
+        val nextTurn: () -> Unit = {
+            coroutineScope.launch {
+                delay(300) // Attendre un peu pour permettre à l'état de se stabiliser
+                var nextTurnIndex = talkingPlayer
+                do {
+                    nextTurnIndex = (nextTurnIndex % 9) + 1
+                } while (playerInfo[nextTurnIndex]?.inOut == false)
+                talkingPlayer = nextTurnIndex
+            }
+        }
         if (currentPlayerIndex != null) {
             PlayerInfoDialog(
                 playerInfo = playerInfo.getOrPut(currentPlayerIndex!!) { PlayerInfo() },
@@ -429,16 +455,7 @@ fun PokerAdvisorScreen() {
                         playerInfo[currentPlayerIndex!!] = updatedPlayerInfo
                     }
                     currentPlayerIndex = null
-                    coroutineScope.launch {
-                        delay(300) // Attendre un peu pour permettre à l'état de se stabiliser
-                        // Passer au prochain joueur
-                        var nextTurnIndex = talkingPlayer
-                        do {
-                            nextTurnIndex = (nextTurnIndex % 9) + 1
-                        } while (playerInfo[nextTurnIndex]?.inOut == false)
 
-                        talkingPlayer = nextTurnIndex
-                    }
                 },
                 focusOnStack = true,
                 allPlayerInfo = playerInfo,
@@ -446,7 +463,8 @@ fun PokerAdvisorScreen() {
                 smallBlindPosition = smallBlindPosition,
                 bigBlindPosition = bigBlindPosition,
                 bigBlindAmount = bigBlind.toInt(),
-                updatePot = { amount -> pot += amount }
+                updatePot = { amount -> pot += amount },
+                nextTurn = nextTurn
 
             )
         }

@@ -49,7 +49,8 @@ fun PlayerInfoDialog(
     smallBlindPosition: Int?, // Ajoutez cette ligne
     bigBlindPosition: Int?, // Ajoutez cette ligne
     bigBlindAmount: Int,
-    updatePot: (Int) -> Unit
+    updatePot: (Int) -> Unit,
+    nextTurn: () -> Unit
 ) {
     var stack by remember { mutableStateOf(playerInfo.stack) }
     var lastAction by remember { mutableStateOf(playerInfo.lastAction) } // Fold par défaut
@@ -181,7 +182,7 @@ fun PlayerInfoDialog(
                                             historyActions = historyActions.split(", ").map { it.trim() }
                                         )
                                         onDismiss(updatedPlayerInfo) // Fermer le dialog immédiatement
-
+                                        nextTurn()
 
 
 
@@ -201,7 +202,7 @@ fun PlayerInfoDialog(
                                             historyActions = historyActions.split(", ").map { it.trim() }
                                         )) // Fermer le dialog immédiatement
 
-
+                                        nextTurn()
                                     },
                                     enabled = !isStackTooSmall,
                                     colors = ButtonDefaults.buttonColors(
@@ -242,6 +243,7 @@ fun PlayerInfoDialog(
                                                 historyActions = historyActions.split(", ").map { it.trim() }
                                             )
                                         )
+                                        nextTurn()
 
                                     },
                                     enabled = !isStackTooSmall && !(playerIndex == bigBlindPosition && highestBetAmount == bigBlindAmount),
@@ -303,6 +305,7 @@ fun PlayerInfoDialog(
                                         )
                                         onDismiss(updatedPlayerInfo)
 
+                                        nextTurn()
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                                 ) {
@@ -379,6 +382,7 @@ fun PlayerInfoDialog(
                                                     historyActions = historyActions.split(", ").map { it.trim() }
                                                 )
                                                 onDismiss(updatedPlayerInfo) // Fermer le dialog immédiatement
+                                                nextTurn()
                                             }
                                         },
                                         enabled = !isIllegalRaise, // Désactiver si le raise est invalide
